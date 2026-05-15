@@ -1,0 +1,179 @@
+{
+  "info": {
+    "name": "PDF Renamer API",
+    "description": "Postman collection for the PDF Renamer NestJS backend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Upload Documents",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "files",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/documents/upload",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "documents",
+            "upload"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get All Documents",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/documents",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "documents"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Document by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/documents/{{document_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "documents",
+            "{{document_id}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Document Download URL",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/documents/{{document_id}}/download",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "documents",
+            "{{document_id}}",
+            "download"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Retry Document Processing",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/documents/{{document_id}}/retry",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "documents",
+            "{{document_id}}",
+            "retry"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Document Filename",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"filename\": \"new-updated-filename.pdf\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/documents/{{document_id}}/filename",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "documents",
+            "{{document_id}}",
+            "filename"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Delete Document",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/documents/{{document_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "documents",
+            "{{document_id}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Cancel Document Processing",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/documents/{{document_id}}/cancel",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "documents",
+            "{{document_id}}",
+            "cancel"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "document_id",
+      "value": "replace-with-document-id",
+      "type": "string"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Document {
+  id               String         @id @default(uuid())
+  originalName     String
+  generatedName    String?
+  finalName        String?
+  mimeType         String
+  sizeBytes        Int
+  sha256           String
+  status           DocumentStatus @default(UPLOADED)
+  storageKey       String
+  finalStorageKey  String?
+  pageCount        Int?
+  detectedLanguage String?
+  aiProvider       String?
+  aiModel          String?
+  title            String?
+  category         String?
+  documentDate     String?
+  issuer           String?
+  recipient        String?
+  referenceNumber  String?
+  summary          String?
+  confidence       Float?
+  errorMessage     String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+enum DocumentStatus {
+  UPLOADED
+  QUEUED
+  EXTRACTING_TEXT
+  ANALYZING_WITH_AI
+  RENAMING
+  COMPLETED
+  FAILED
+  NEEDS_REVIEW
+}
