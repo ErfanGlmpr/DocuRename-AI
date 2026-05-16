@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
 import { DocumentsService } from './documents.service';
 
@@ -15,28 +23,42 @@ export class DocumentsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get document details' })
-  @ApiParam({ name: 'id', description: 'The unique identifier of the document' })
-  async findOne(@Param('id') id: string) {
-    return this.documentsService.findOne(id);
+  @ApiParam({
+    name: 'id',
+    description: 'The unique identifier of the document',
+  })
+  async findOne(@Param('id') id: string): Promise<Record<string, unknown>> {
+    return this.documentsService.findOnePublic(id);
   }
 
   @Get(':id/download')
   @ApiOperation({ summary: 'Get a presigned download URL for the document' })
-  @ApiParam({ name: 'id', description: 'The unique identifier of the document' })
+  @ApiParam({
+    name: 'id',
+    description: 'The unique identifier of the document',
+  })
   async getDownloadUrl(@Param('id') id: string) {
     return this.documentsService.getDownloadUrl(id);
   }
 
   @Post(':id/retry')
   @ApiOperation({ summary: 'Retry processing for a failed document' })
-  @ApiParam({ name: 'id', description: 'The unique identifier of the document' })
+  @ApiParam({
+    name: 'id',
+    description: 'The unique identifier of the document',
+  })
   async retryProcessing(@Param('id') id: string) {
     return this.documentsService.retryProcessing(id);
   }
 
   @Patch(':id/filename')
-  @ApiOperation({ summary: 'Update the final filename and perform rename operation' })
-  @ApiParam({ name: 'id', description: 'The unique identifier of the document' })
+  @ApiOperation({
+    summary: 'Update the final filename and perform rename operation',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'The unique identifier of the document',
+  })
   @ApiBody({
     schema: {
       type: 'object',
@@ -54,14 +76,20 @@ export class DocumentsController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a document and its files' })
-  @ApiParam({ name: 'id', description: 'The unique identifier of the document' })
+  @ApiParam({
+    name: 'id',
+    description: 'The unique identifier of the document',
+  })
   async remove(@Param('id') id: string) {
     return this.documentsService.remove(id);
   }
 
   @Post(':id/cancel')
   @ApiOperation({ summary: 'Cancel document processing' })
-  @ApiParam({ name: 'id', description: 'The unique identifier of the document' })
+  @ApiParam({
+    name: 'id',
+    description: 'The unique identifier of the document',
+  })
   async cancel(@Param('id') id: string) {
     return this.documentsService.cancel(id);
   }

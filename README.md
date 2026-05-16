@@ -1,95 +1,131 @@
-# PDF AI Renaming SaaS - Phase 1
+# PDF AI Renaming SaaS
 
-This is the backend for Phase 1 of the PDF AI renaming application. It extracts text from uploaded PDFs, sends it to a local LLM (Ollama) to extract metadata (like title, category, date), and generates a safe, clean filename.
+This is the backend for a PDF AI renaming application. It extracts text from uploaded PDFs, protects user privacy by redacting Personally Identifiable Information (PII), sends the safe text to a local LLM (Ollama) to extract metadata, and generates a safe, clean filename.
+
+## Phase 1 Overview
+Phase 1 focuses on the core functionality:
+- PDF upload and storage in MinIO.
+- Text extraction using `pdf-parse`.
+- Metadata extraction using local Ollama (Llama 3.1).
+- Automatic filename generation.
+
+## Phase 2: Privacy & PII Protection (New!)
+Phase 2 adds a robust privacy pipeline before data is sent to the AI:
+- **PII Detection**: Detects EMAIL, PHONE, IBAN, CREDIT_CARD, VAT_ID, TAX_ID, labeled Names/Addresses, etc.
+- **Tokenization**: Replaces sensitive data with stable tokens (e.g., `[EMAIL_1]`).
+- **Encrypted Storage**: Stores original PII values in an encrypted map (AES-256-GCM).
+- **Prompt Minimization**: Intelligent text reduction to fit context windows and reduce data exposure.
+- **Audit Logging**: Secure audit trail of all processing events.
+
+---
 
 ## Architecture
 
 - **NestJS**: Backend framework.
-- **Prisma + PostgreSQL**: Database for storing Document records.
+- **Prisma + PostgreSQL**: Database for Document records and Audit Logs.
 - **MinIO**: S3-compatible local storage for original and final PDFs.
 - **BullMQ + Redis**: Background job queue for processing documents.
-- **Ollama**: Local AI provider running `llama3.1:8b` (or similar).
+- **Ollama**: Local AI provider running `llama3.1:8b`.
+- **Privacy Module**: Native TypeScript implementation for PII protection.
+
+---
 
 ## Local Setup Instructions
 
 ### 1. Start Infrastructure (Docker Compose)
 Make sure Docker is running. From the root of the project, run:
-\`\`\`bash
+```bash
 docker-compose up -d
-\`\`\`
-This will start PostgreSQL, Redis, MinIO, and Ollama. Note: The MinIO initialization container will automatically create the \`documents\` bucket and make it public.
+```
+This starts PostgreSQL, Redis, MinIO, and Ollama.
 
 ### 2. Pull the Ollama Model
-Since the Ollama container starts empty, you need to pull the AI model.
-\`\`\`bash
+The Ollama container starts empty; you must pull the model manually. **This only needs to be done once**, as the model is stored in a persistent Docker volume:
+```bash
 docker exec -it pdf_ai_ollama ollama pull llama3.1:8b
-\`\`\`
+```
 
-### 3. Setup Backend
-Navigate to the \`backend\` directory:
-\`\`\`bash
+### 3. Setup Backend (NPM)
+Navigate to the `backend` directory:
+```bash
 cd backend
-\`\`\`
+```
 
-Ensure you have your environment variables set up (the \`.env\` should already be copied from \`.env.example\`):
-\`\`\`bash
-npm install
-npx prisma migrate dev --name init
-npm run build
-\`\`\`
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-### 4. Run the API and Worker
-In Phase 1, the API and the BullMQ worker run in the same NestJS process. Start it in dev mode:
-\`\`\`bash
-npm run start:dev
-\`\`\`
+2. **Configure Environment**:
+   Copy the example environment file and ensure `PII_ENCRYPTION_KEY` is set:
+   ```bash
+   cp .env.example .env
+   ```
+   *(Note: .env.example already contains a sample key for local development)*
 
-## API Endpoint Summary
+3. **Initialize Database**:
+   ```bash
+   npx prisma migrate dev --name init
+   ```
 
-### \`POST /documents/upload\`
+4. **Build the project**:
+   ```bash
+   npm run start:dev
+   ```
+
+---
+
+## API & Documentation
+
+- **Swagger UI**: Accessible at [http://localhost:3000/api](http://localhost:3000/api) when the backend is running.
+- **Postman Collection**: A pre-configured collection is available in the root directory: `PDF-Renamer-API.postman_collection.json`.
+
+---
+
+## API Endpoint Examples
+
+### `POST /documents/upload`
 Upload one or more PDFs.
-\`\`\`bash
+```bash
 curl -F "files=@/path/to/invoice.pdf" http://localhost:3000/documents/upload
-\`\`\`
+```
 
-### \`GET /documents\`
-List all documents and their processing status.
-\`\`\`bash
+### `GET /documents`
+List all documents with privacy metadata (`piiDetected`, `privacyMode`, etc.).
+```bash
 curl http://localhost:3000/documents
-\`\`\`
+```
 
-### \`GET /documents/:id\`
-Get full metadata for a specific document.
-\`\`\`bash
+### `GET /documents/:id`
+Get document details (sensitive fields like `redactedText` are excluded for privacy).
+```bash
 curl http://localhost:3000/documents/<uuid>
-\`\`\`
+```
 
-### \`GET /documents/:id/download\`
-Get a presigned S3 download URL for the final renamed PDF (if processing is complete).
-\`\`\`bash
-curl http://localhost:3000/documents/<uuid>/download
-\`\`\`
+---
 
-### \`POST /documents/:id/retry\`
-Requeue a failed document for processing.
-\`\`\`bash
-curl -X POST http://localhost:3000/documents/<uuid>/retry
-\`\`\`
+## Privacy Configuration
 
-### \`PATCH /documents/:id/filename\`
-Manually rename the final document.
-\`\`\`bash
-curl -X PATCH -H "Content-Type: application/json" -d '{"filename": "new-name.pdf"}' http://localhost:3000/documents/<uuid>/filename
-\`\`\`
+Phase 2 settings in `.env`:
 
-## Known Phase 1 Limitations
-- **No OCR**: If a PDF is composed of images rather than text, `pdf-parse` will not extract anything, and the process will fail gracefully.
-- **No Authentication**: The API is open.
-- **No PII Redaction**: Text is sent directly to the AI provider.
-- **No Cloud AI Providers**: Only Ollama is implemented (though the `AiProvider` interface supports adding others like OpenAI).
+- `PII_REDACTION_ENABLED`: Set to `true` to enable redaction (default).
+- `PII_ENCRYPTION_KEY`: Base64 encoded 32-byte key for AES-256-GCM.
+- `AI_INPUT_MAX_CHARS`: Maximum length of text sent to AI (default 12000).
 
-## Next Phases
-- Implement OCR for scanned documents.
-- Add PII redaction before sending text to the AI.
-- Add cloud AI provider support (OpenAI, Anthropic) or vLLM.
-- Implement user authentication and multi-tenancy.
+To generate a new encryption key:
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+## Supported PII Types
+- EMAIL, PHONE, IBAN, CREDIT_CARD, VAT_ID, TAX_ID.
+- PERSON_NAME_BASIC, ADDRESS_BASIC (when labeled).
+- GENERIC_ID_NUMBER (Passport, ID, etc.).
+
+---
+
+## Limitations & Roadmap
+- **No OCR**: Scanned image PDFs are not supported yet.
+- **Deterministic Detection**: May miss unlabeled names/addresses.
+- **Roadmap**: Add OCR support, Cloud AI providers, and Multi-tenancy.
+```

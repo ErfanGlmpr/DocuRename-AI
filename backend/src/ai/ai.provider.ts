@@ -27,8 +27,11 @@ export type DocumentMetadata = z.infer<typeof DocumentMetadataSchema>;
 
 export interface AiProvider {
   name: string;
-  extractDocumentMetadata(input: {
-    text: string;
-    originalFilename: string;
-  }): Promise<DocumentMetadata>;
+  extractDocumentMetadata(
+    input: {
+      text: string;
+      originalFilename: string;
+    },
+    signal?: AbortSignal,
+  ): Promise<DocumentMetadata>;
 }

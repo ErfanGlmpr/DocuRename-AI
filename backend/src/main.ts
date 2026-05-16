@@ -7,7 +7,9 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('PDF AI Renamer API')
-    .setDescription('The API for managing and processing PDF documents using AI')
+    .setDescription(
+      'The API for managing and processing PDF documents using AI',
+    )
     .setVersion('1.0')
     .addTag('documents')
     .build();
@@ -16,4 +18,6 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+bootstrap().catch((err: Error) => {
+  console.error('Failed to start application', err.message);
+});
