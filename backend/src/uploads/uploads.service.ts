@@ -30,7 +30,10 @@ export class UploadsService {
         continue;
       }
 
-      const hash = crypto.createHash('sha256').update(file.buffer).digest('hex');
+      const hash = crypto
+        .createHash('sha256')
+        .update(file.buffer)
+        .digest('hex');
       const documentId = uuidv4();
       const storageKey = `documents/${documentId}/original.pdf`;
 

@@ -5,14 +5,22 @@ import { PDFParse } from 'pdf-parse';
 export class PdfExtractionService {
   private readonly logger = new Logger(PdfExtractionService.name);
 
-  async extractText(buffer: Buffer): Promise<string> {
+  async extractText(
+    buffer: Buffer,
+  ): Promise<{ text: string; pageCount: number }> {
     try {
       const parser = new PDFParse({ data: buffer });
-      const data = await parser.getText();
-      if (!data.text || data.text.trim().length === 0) {
-        throw new Error('No extractable text found. OCR is not implemented in Phase 1.');
+      const result = await parser.getText();
+
+      if (!result.text || result.text.trim().length === 0) {
+        throw new Error(
+          'No extractable text found. OCR is not implemented in Phase 1.',
+        );
       }
-      return data.text.trim();
+      return {
+        text: result.text.trim(),
+        pageCount: result.total,
+      };
     } catch (error) {
       this.logger.error('Failed to extract text from PDF', error);
       throw error;

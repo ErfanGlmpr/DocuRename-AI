@@ -1,6 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { S3Client, PutObjectCommand, GetObjectCommand, CopyObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  CopyObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 @Injectable()
@@ -15,14 +21,20 @@ export class StorageService {
       region: this.configService.get<string>('S3_REGION'),
       credentials: {
         accessKeyId: this.configService.get<string>('S3_ACCESS_KEY_ID') || '',
-        secretAccessKey: this.configService.get<string>('S3_SECRET_ACCESS_KEY') || '',
+        secretAccessKey:
+          this.configService.get<string>('S3_SECRET_ACCESS_KEY') || '',
       },
-      forcePathStyle: this.configService.get<string>('S3_FORCE_PATH_STYLE') === 'true',
+      forcePathStyle:
+        this.configService.get<string>('S3_FORCE_PATH_STYLE') === 'true',
     });
     this.bucket = this.configService.get<string>('S3_BUCKET') || '';
   }
 
-  async uploadBuffer(key: string, buffer: Buffer, contentType: string): Promise<void> {
+  async uploadBuffer(
+    key: string,
+    buffer: Buffer,
+    contentType: string,
+  ): Promise<void> {
     try {
       await this.s3Client.send(
         new PutObjectCommand({
@@ -68,7 +80,10 @@ export class StorageService {
         }),
       );
     } catch (error) {
-      this.logger.error(`Failed to copy object from ${sourceKey} to ${destinationKey}`, error);
+      this.logger.error(
+        `Failed to copy object from ${sourceKey} to ${destinationKey}`,
+        error,
+      );
       throw error;
     }
   }

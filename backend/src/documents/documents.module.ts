@@ -8,6 +8,7 @@ import { QueueModule } from '../queue/queue.module';
 @Module({
   imports: [PrismaModule, StorageModule, QueueModule],
   providers: [DocumentsService],
-  controllers: [DocumentsController]
+  controllers: [DocumentsController],
+  exports: [DocumentsService],
 })
 export class DocumentsModule {}

@@ -1,4 +1,10 @@
-import { Controller, Post, UseInterceptors, UploadedFiles, ParseFilePipeBuilder, HttpStatus, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UseInterceptors,
+  UploadedFiles,
+  BadRequestException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { UploadsService } from './uploads.service';
@@ -38,12 +44,17 @@ export class UploadsController {
       throw new BadRequestException('At least one file must be uploaded');
     }
 
-    const maxSizeMB = parseInt(this.configService.get('MAX_UPLOAD_SIZE_MB') || '25', 10);
+    const maxSizeMB = parseInt(
+      this.configService.get('MAX_UPLOAD_SIZE_MB') || '25',
+      10,
+    );
     const maxSizeBytes = maxSizeMB * 1024 * 1024;
 
-    const validFiles = files.filter(f => f.size <= maxSizeBytes);
+    const validFiles = files.filter((f) => f.size <= maxSizeBytes);
     if (validFiles.length === 0) {
-      throw new BadRequestException(`All files exceed maximum size of ${maxSizeMB}MB`);
+      throw new BadRequestException(
+        `All files exceed maximum size of ${maxSizeMB}MB`,
+      );
     }
 
     return this.uploadsService.processUploads(validFiles);

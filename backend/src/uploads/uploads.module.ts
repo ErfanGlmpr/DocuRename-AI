@@ -9,6 +9,6 @@ import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [PrismaModule, StorageModule, QueueModule, ConfigModule],
   providers: [UploadsService],
-  controllers: [UploadsController]
+  controllers: [UploadsController],
 })
 export class UploadsModule {}

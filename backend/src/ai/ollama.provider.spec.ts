@@ -27,8 +27,12 @@ describe('OllamaProvider JSON parsing', () => {
       "summary": "This is an invoice."
     }`;
 
-    // Access private method using any for testing
-    const result = (provider as any).parseAndValidate(validJson) as DocumentMetadata;
+    // Access private method using type assertion for testing
+    const result = (
+      provider as unknown as {
+        parseAndValidate(s: string): DocumentMetadata;
+      }
+    ).parseAndValidate(validJson);
     expect(result.title).toBe('Test Invoice');
     expect(result.category).toBe('invoice');
   });
@@ -52,7 +56,11 @@ describe('OllamaProvider JSON parsing', () => {
     Have a nice day!
     `;
 
-    const result = (provider as any).parseAndValidate(markdownJson) as DocumentMetadata;
+    const result = (
+      provider as unknown as {
+        parseAndValidate(s: string): DocumentMetadata;
+      }
+    ).parseAndValidate(markdownJson);
     expect(result.title).toBe('Test Contract');
     expect(result.category).toBe('contract');
   });
