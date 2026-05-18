@@ -125,7 +125,8 @@ Return ONLY a valid JSON object matching the schema below. No preamble, no markd
   "referenceNumber": "Invoice number, customer ID, or reference ID or null",
   "suggestedFilename": "A concise, safe filename ending in .pdf (e.g., 2026-01-16_GASAG_Stromrechnung.pdf)",
   "confidence": A number between 0.0 and 1.0 (ignore redaction when scoring),
-  "summary": "A concise 1-sentence summary"
+  "summary": "A concise 1-sentence summary",
+  "language": "ISO 639-1 two-letter language code for the primary language of the document (e.g., 'de', 'en', 'fr', 'es'). Default to 'en' if unsure."
 }`;
 
     const prompt = `### CONTEXT

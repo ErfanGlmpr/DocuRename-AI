@@ -24,7 +24,8 @@ describe('OllamaProvider JSON parsing', () => {
       "referenceNumber": "INV-123",
       "suggestedFilename": "acme-invoice.pdf",
       "confidence": 0.95,
-      "summary": "This is an invoice."
+      "summary": "This is an invoice.",
+      "language": "de"
     }`;
 
     // Access private method using type assertion for testing
@@ -35,6 +36,7 @@ describe('OllamaProvider JSON parsing', () => {
     ).parseAndValidate(validJson);
     expect(result.title).toBe('Test Invoice');
     expect(result.category).toBe('invoice');
+    expect(result.language).toBe('de');
   });
 
   it('should parse markdown-wrapped JSON', () => {
@@ -50,7 +52,8 @@ describe('OllamaProvider JSON parsing', () => {
       "referenceNumber": null,
       "suggestedFilename": "contract.pdf",
       "confidence": 0.8,
-      "summary": "Contract."
+      "summary": "Contract.",
+      "language": "en"
     }
     \`\`\`
     Have a nice day!
@@ -63,5 +66,6 @@ describe('OllamaProvider JSON parsing', () => {
     ).parseAndValidate(markdownJson);
     expect(result.title).toBe('Test Contract');
     expect(result.category).toBe('contract');
+    expect(result.language).toBe('en');
   });
 });

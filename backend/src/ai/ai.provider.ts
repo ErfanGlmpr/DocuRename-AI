@@ -21,6 +21,7 @@ export const DocumentMetadataSchema = z.object({
   suggestedFilename: z.string().min(1),
   confidence: z.number().min(0).max(1),
   summary: z.string(),
+  language: z.string().default('en'),
 });
 
 export type DocumentMetadata = z.infer<typeof DocumentMetadataSchema>;
