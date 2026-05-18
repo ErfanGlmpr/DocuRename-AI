@@ -162,6 +162,41 @@
           ]
         }
       }
+    },
+    {
+      "name": "Get Stuck Documents",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/documents/stuck",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "documents",
+            "stuck"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Reconcile Stuck Documents",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/documents/stuck/reconcile",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "documents",
+            "stuck",
+            "reconcile"
+          ]
+        }
+      }
     }
   ],
   "variable": [

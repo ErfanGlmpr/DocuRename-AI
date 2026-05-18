@@ -200,4 +200,134 @@ export class DocumentsService {
 
     return { message: 'Document processing canceled' };
   }
+
+  async findStuck(): Promise<{
+    stuckDocumentsCount: number;
+    stuckDocuments: {
+      id: string;
+      originalName: string;
+      status: DocumentStatus;
+      updatedAt: Date;
+      createdAt: Date;
+      reason: string;
+    }[];
+  }> {
+    const docs = await this.prisma.document.findMany({
+      where: {
+        status: {
+          in: [
+            DocumentStatus.QUEUED,
+            DocumentStatus.EXTRACTING_TEXT,
+            DocumentStatus.ANALYZING_WITH_AI,
+            DocumentStatus.RENAMING,
+          ],
+        },
+      },
+      select: {
+        id: true,
+        originalName: true,
+        status: true,
+        updatedAt: true,
+        createdAt: true,
+      },
+    });
+
+    const activeJobs = await this.documentQueue.getActive();
+    const waitingJobs = await this.documentQueue.getWaiting();
+
+    const queueDocIds = new Set<string>();
+    const checkJobs = [...activeJobs, ...waitingJobs];
+    for (const job of checkJobs) {
+      const data = job.data as { documentId?: string } | undefined;
+      if (data?.documentId) {
+        queueDocIds.add(data.documentId);
+      }
+    }
+
+    const stuckDocs: {
+      id: string;
+      originalName: string;
+      status: DocumentStatus;
+      updatedAt: Date;
+      createdAt: Date;
+      reason: string;
+    }[] = [];
+    const now = Date.now();
+    const TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+
+    for (const doc of docs) {
+      const isRegisteredInQueue = queueDocIds.has(doc.id);
+      const docAgeMs = now - doc.updatedAt.getTime();
+
+      let stuckReason: string | null = null;
+
+      if (!isRegisteredInQueue) {
+        if (doc.status === DocumentStatus.QUEUED) {
+          stuckReason =
+            'Document is QUEUED in database but missing from active/waiting/stalled queue jobs.';
+        } else {
+          stuckReason = `Document status is '${doc.status}' in database but no matching active/waiting/stalled job found in BullMQ.`;
+        }
+      } else if (
+        doc.status !== DocumentStatus.QUEUED &&
+        docAgeMs > TIMEOUT_MS
+      ) {
+        stuckReason = `Processing active in database for more than 15 minutes (${Math.round(docAgeMs / 60000)} mins since last update).`;
+      }
+
+      if (stuckReason) {
+        stuckDocs.push({
+          id: doc.id,
+          originalName: doc.originalName,
+          status: doc.status,
+          updatedAt: doc.updatedAt,
+          createdAt: doc.createdAt,
+          reason: stuckReason,
+        });
+      }
+    }
+
+    return {
+      stuckDocumentsCount: stuckDocs.length,
+      stuckDocuments: stuckDocs,
+    };
+  }
+
+  async reconcileStuck(): Promise<{
+    message: string;
+    reconciledCount: number;
+    reconciledIds: string[];
+  }> {
+    const { stuckDocuments } = await this.findStuck();
+
+    if (stuckDocuments.length === 0) {
+      return {
+        message: 'No stuck documents detected.',
+        reconciledCount: 0,
+        reconciledIds: [],
+      };
+    }
+
+    const reconciledIds: string[] = [];
+
+    for (const doc of stuckDocuments) {
+      await this.prisma.document.update({
+        where: { id: doc.id },
+        data: {
+          status: DocumentStatus.FAILED,
+          errorMessage: `System auto-reconciliation: detected stuck processing. Reason: ${doc.reason}`,
+        },
+      });
+      reconciledIds.push(doc.id);
+      this.logger.warn(
+        `Auto-reconciled stuck document ${doc.id} (${doc.originalName}) to FAILED.`,
+      );
+    }
+
+    return {
+      message: `Successfully reconciled ${reconciledIds.length} stuck documents to FAILED.`,
+      reconciledCount: reconciledIds.length,
+      reconciledIds,
+    };
+  }
 }
