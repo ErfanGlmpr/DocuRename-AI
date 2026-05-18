@@ -26,6 +26,17 @@ export const DocumentMetadataSchema = z.object({
 
 export type DocumentMetadata = z.infer<typeof DocumentMetadataSchema>;
 
+export interface TokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
+export interface ExtractionResult {
+  metadata: DocumentMetadata;
+  tokenUsage?: TokenUsage;
+}
+
 export interface AiProvider {
   name: string;
   extractDocumentMetadata(
@@ -34,5 +45,5 @@ export interface AiProvider {
       originalFilename: string;
     },
     signal?: AbortSignal,
-  ): Promise<DocumentMetadata>;
+  ): Promise<ExtractionResult>;
 }

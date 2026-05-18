@@ -189,7 +189,7 @@ export class DocumentProcessorService extends WorkerHost {
         metadata: { provider: aiProvider.name, aiInputMode },
       });
 
-      const metadata = await aiProvider.extractDocumentMetadata(
+      const { metadata, tokenUsage } = await aiProvider.extractDocumentMetadata(
         {
           text: aiInputText,
           originalFilename: document.originalName,
@@ -203,6 +203,7 @@ export class DocumentProcessorService extends WorkerHost {
         metadata: {
           confidence: metadata.confidence,
           durationMs: Date.now() - startTime,
+          tokenUsage,
         },
       });
 
@@ -241,6 +242,9 @@ export class DocumentProcessorService extends WorkerHost {
           confidence: metadata.confidence,
           aiInputMode,
           processingDuration: Math.round((Date.now() - startTime) / 1000),
+          promptTokens: tokenUsage?.promptTokens,
+          completionTokens: tokenUsage?.completionTokens,
+          totalTokens: tokenUsage?.totalTokens,
         },
       });
 
