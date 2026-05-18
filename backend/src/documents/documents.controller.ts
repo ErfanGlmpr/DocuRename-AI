@@ -21,6 +21,24 @@ export class DocumentsController {
     return this.documentsService.findAll();
   }
 
+  @Get('stuck')
+  @ApiOperation({
+    summary:
+      'List all stuck documents that are blocked or missing from the queue',
+  })
+  async findStuck() {
+    return this.documentsService.findStuck();
+  }
+
+  @Post('stuck/reconcile')
+  @ApiOperation({
+    summary:
+      'Automatically reconcile stuck documents by marking them as FAILED',
+  })
+  async reconcileStuck() {
+    return this.documentsService.reconcileStuck();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get document details' })
   @ApiParam({
