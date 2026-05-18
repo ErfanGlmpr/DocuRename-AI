@@ -40,6 +40,9 @@ model Document {
   privacyMode          PrivacyMode    @default(REDACTED)
   redactedText         String?
   processingDuration   Int?
+  promptTokens         Int?
+  completionTokens     Int?
+  totalTokens          Int?
 }
 
 model AuditLog {

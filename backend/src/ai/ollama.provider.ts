@@ -5,6 +5,7 @@ import {
   AiProvider,
   DocumentMetadata,
   DocumentMetadataSchema,
+  ExtractionResult,
 } from './ai.provider';
 
 @Injectable()
@@ -25,16 +26,29 @@ export class OllamaProvider implements AiProvider {
   async extractDocumentMetadata(
     input: { text: string; originalFilename: string },
     signal?: AbortSignal,
-  ): Promise<DocumentMetadata> {
+  ): Promise<ExtractionResult> {
     const { system, prompt } = this.buildPrompt(
       input.text,
       input.originalFilename,
     );
 
-    let result = await this.callOllama(prompt, system, signal);
+    let accumulatedPromptTokens = 0;
+    let accumulatedCompletionTokens = 0;
+
+    let callResult = await this.callOllama(prompt, system, signal);
+    accumulatedPromptTokens += callResult.promptTokens;
+    accumulatedCompletionTokens += callResult.completionTokens;
 
     try {
-      return this.parseAndValidate(result);
+      const metadata = this.parseAndValidate(callResult.response);
+      return {
+        metadata,
+        tokenUsage: {
+          promptTokens: accumulatedPromptTokens,
+          completionTokens: accumulatedCompletionTokens,
+          totalTokens: accumulatedPromptTokens + accumulatedCompletionTokens,
+        },
+      };
     } catch (e: any) {
       if ((e as Error).name === 'AbortError' || axios.isCancel(e)) {
         throw e;
@@ -46,13 +60,24 @@ export class OllamaProvider implements AiProvider {
       const repairSystem =
         'You are a JSON repair assistant. Return ONLY valid JSON matching the requested schema. No talk.';
       const repairPrompt = `The following JSON was invalid or failed schema validation:
-${result}
+${callResult.response}
 
 Error: ${(e as Error).message}
 
 Please return ONLY valid JSON matching the schema exactly.`;
-      result = await this.callOllama(repairPrompt, repairSystem, signal);
-      return this.parseAndValidate(result);
+      callResult = await this.callOllama(repairPrompt, repairSystem, signal);
+      accumulatedPromptTokens += callResult.promptTokens;
+      accumulatedCompletionTokens += callResult.completionTokens;
+
+      const metadata = this.parseAndValidate(callResult.response);
+      return {
+        metadata,
+        tokenUsage: {
+          promptTokens: accumulatedPromptTokens,
+          completionTokens: accumulatedCompletionTokens,
+          totalTokens: accumulatedPromptTokens + accumulatedCompletionTokens,
+        },
+      };
     }
   }
 
@@ -73,7 +98,11 @@ Please return ONLY valid JSON matching the schema exactly.`;
     prompt: string,
     system?: string,
     signal?: AbortSignal,
-  ): Promise<string> {
+  ): Promise<{
+    response: string;
+    promptTokens: number;
+    completionTokens: number;
+  }> {
     try {
       const response = await axios.post(
         `${this.baseUrl}/api/generate`,
@@ -94,7 +123,17 @@ Please return ONLY valid JSON matching the schema exactly.`;
         },
       );
 
-      return (response.data as { response: string }).response;
+      const responseData = response.data as {
+        response: string;
+        prompt_eval_count?: number;
+        eval_count?: number;
+      };
+
+      return {
+        response: responseData.response,
+        promptTokens: responseData.prompt_eval_count || 0,
+        completionTokens: responseData.eval_count || 0,
+      };
     } catch (error: any) {
       this.logger.error(
         'Failed to communicate with Ollama',

@@ -43,6 +43,9 @@ export class DocumentsService {
         aiInputMode: true,
         piiProcessedAt: true,
         processingDuration: true,
+        promptTokens: true,
+        completionTokens: true,
+        totalTokens: true,
       },
     });
   }
