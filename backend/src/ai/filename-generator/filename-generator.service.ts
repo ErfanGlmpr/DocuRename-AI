@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DocumentMetadata } from '../ai.provider';
+import transliterate from '@sindresorhus/transliterate';
 
 @Injectable()
 export class FilenameGeneratorService {
@@ -22,11 +23,17 @@ export class FilenameGeneratorService {
       baseName = `${datePart}_${categoryPart}${issuerPart}${refPart}`;
     }
 
-    return this.sanitizeFilename(baseName);
+    return this.sanitizeFilename(baseName, metadata.language);
   }
 
-  private sanitizeFilename(name: string): string {
-    let sanitized = name.toLowerCase();
+  private sanitizeFilename(name: string, locale?: string): string {
+    // 1. Normalize NFD (decomposed) strings to NFC (precomposed) so diacritics are single characters
+    const normalized = name.normalize('NFC');
+
+    // 2. Transliterate diacritics using @sindresorhus/transliterate with dynamic locale support
+    let sanitized = transliterate(normalized, { locale });
+
+    sanitized = sanitized.toLowerCase();
 
     // Replace spaces and special chars with hyphens
     sanitized = sanitized.replace(/[^a-z0-9-_.]/g, '-');
