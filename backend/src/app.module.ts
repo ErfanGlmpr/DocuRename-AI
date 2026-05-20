@@ -12,6 +12,7 @@ import { AiModule } from './ai/ai.module';
 import { PrivacyModule } from './privacy/privacy.module';
 import { AuditModule } from './audit/audit.module';
 import { CancellationModule } from './cancellation/cancellation.module';
+import { AiEvaluationModule } from './ai-evaluation/ai-evaluation.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { CancellationModule } from './cancellation/cancellation.module';
     AiModule,
     PrivacyModule,
     AuditModule,
+    AiEvaluationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

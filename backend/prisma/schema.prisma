@@ -7,14 +7,14 @@ datasource db {
 }
 
 model Document {
-  id                   String         @id @default(uuid())
+  id                   String              @id @default(uuid())
   originalName         String
   generatedName        String?
   finalName            String?
   mimeType             String
   sizeBytes            Int
   sha256               String
-  status               DocumentStatus @default(UPLOADED)
+  status               DocumentStatus      @default(UPLOADED)
   storageKey           String
   finalStorageKey      String?
   pageCount            Int?
@@ -30,19 +30,20 @@ model Document {
   summary              String?
   confidence           Float?
   errorMessage         String?
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
-  aiInputMode          AiInputMode    @default(REDACTED_TEXT)
-  piiDetected          Boolean        @default(false)
-  piiEntityCount       Int            @default(0)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  aiInputMode          AiInputMode         @default(REDACTED_TEXT)
+  piiDetected          Boolean             @default(false)
+  piiEntityCount       Int                 @default(0)
   piiProcessedAt       DateTime?
   piiTokenMapEncrypted Json?
-  privacyMode          PrivacyMode    @default(REDACTED)
+  privacyMode          PrivacyMode         @default(REDACTED)
   redactedText         String?
   processingDuration   Int?
   promptTokens         Int?
   completionTokens     Int?
   totalTokens          Int?
+  evaluationRuns       AiEvaluationRun[]
 }
 
 model AuditLog {
@@ -51,6 +52,32 @@ model AuditLog {
   action     String
   metadata   Json?
   createdAt  DateTime @default(now())
+}
+
+model AiEvaluationRun {
+  id                String             @id @default(uuid())
+  documentId        String
+  document          Document           @relation(fields: [documentId], references: [id])
+  provider          String
+  model             String
+  status            AiEvaluationStatus @default(PENDING)
+  title             String?
+  category          String?
+  documentDate      String?
+  issuer            String?
+  recipient         String?
+  referenceNumber   String?
+  suggestedFilename String?
+  confidence        Float?
+  summary           String?
+  language          String?
+  promptTokens      Int?
+  completionTokens  Int?
+  totalTokens       Int?
+  latencyMs         Int?
+  errorMessage      String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 }
 
 enum DocumentStatus {
@@ -73,4 +100,11 @@ enum AiInputMode {
   RAW_TEXT
   REDACTED_TEXT
   MINIMIZED_REDACTED_TEXT
+}
+
+enum AiEvaluationStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
 }

@@ -197,6 +197,115 @@
           ]
         }
       }
+    },
+    {
+      "name": "Get AI Providers",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/ai/providers",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "ai",
+            "providers"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Check AI Provider Health",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/ai/providers/openai/health",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "ai",
+            "providers",
+            "openai",
+            "health"
+          ]
+        }
+      }
+    },
+    {
+      "name": "List AI Evaluations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/documents/{{document_id}}/ai-evaluations",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "documents",
+            "{{document_id}}",
+            "ai-evaluations"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Run Single AI Evaluation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"provider\": \"openai\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/documents/{{document_id}}/ai-evaluations",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "documents",
+            "{{document_id}}",
+            "ai-evaluations"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Run Batch AI Evaluation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"runs\": [\n        { \"provider\": \"openai\" },\n        { \"provider\": \"ollama\" }\n    ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/documents/{{document_id}}/ai-evaluations/batch",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "documents",
+            "{{document_id}}",
+            "ai-evaluations",
+            "batch"
+          ]
+        }
+      }
     }
   ],
   "variable": [

@@ -58,3 +58,4 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # Backend Database / Scratch Files
 backend/generated/prisma/
 backend/scratch/
+backend/AI-Results.md

@@ -15,6 +15,7 @@ import { PromptMinimizationService } from '../prompt-minimization/prompt-minimiz
 import { AuditService } from '../../audit/audit.service';
 import { DocumentsService } from '../../documents/documents.service';
 import { CancellationService } from '../../cancellation/cancellation.service';
+import { sanitizeAiError } from '../../ai/utils/parse-ai-json';
 
 @Processor('document-processing')
 export class DocumentProcessorService extends WorkerHost {
@@ -181,29 +182,77 @@ export class DocumentProcessorService extends WorkerHost {
 
       // Step 3: Analyze with AI
       await this.updateStatus(documentId, DocumentStatus.ANALYZING_WITH_AI);
-      const aiProvider = this.aiFactory.getProvider();
+      let aiProvider = this.aiFactory.getProvider();
 
       await this.auditService.log({
         documentId,
         action: 'DOCUMENT_AI_ANALYSIS_STARTED',
-        metadata: { provider: aiProvider.name, aiInputMode },
+        metadata: {
+          provider: aiProvider.name,
+          model: aiProvider.model,
+          aiInputMode,
+        },
       });
 
-      const { metadata, tokenUsage } = await aiProvider.extractDocumentMetadata(
-        {
-          text: aiInputText,
-          originalFilename: document.originalName,
-        },
-        signal,
-      );
+      let metadata;
+      let tokenUsage;
+      let fallbackUsed = false;
+      let aiDurationMs = 0;
+      let aiStartTime = Date.now();
+
+      try {
+        const result = await aiProvider.extractDocumentMetadata(
+          { text: aiInputText, originalFilename: document.originalName },
+          signal,
+        );
+        metadata = result.metadata;
+        tokenUsage = result.tokenUsage;
+        aiDurationMs = Date.now() - aiStartTime;
+      } catch (error: unknown) {
+        const err = error as Error;
+        if (err.name === 'AbortError' || err.message === 'AbortError')
+          throw error;
+
+        const fallback = this.aiFactory.getFallbackProvider();
+        if (fallback) {
+          const safeError = sanitizeAiError(error);
+          this.logger.warn(
+            `Primary AI provider failed, trying fallback (${fallback.name}): ${safeError}`,
+          );
+          fallbackUsed = true;
+          aiProvider = fallback;
+          aiStartTime = Date.now();
+
+          await this.auditService.log({
+            documentId,
+            action: 'AI_PROVIDER_FALLBACK_USED',
+            metadata: {
+              primaryError: safeError,
+              fallbackProvider: fallback.name,
+            },
+          });
+
+          const result = await aiProvider.extractDocumentMetadata(
+            { text: aiInputText, originalFilename: document.originalName },
+            signal,
+          );
+          metadata = result.metadata;
+          tokenUsage = result.tokenUsage;
+          aiDurationMs = Date.now() - aiStartTime;
+        } else {
+          throw error;
+        }
+      }
 
       await this.auditService.log({
         documentId,
         action: 'DOCUMENT_AI_ANALYSIS_COMPLETED',
         metadata: {
+          model: aiProvider.model,
           confidence: metadata.confidence,
-          durationMs: Date.now() - startTime,
+          durationMs: aiDurationMs,
           tokenUsage,
+          fallbackUsed,
         },
       });
 
@@ -232,6 +281,7 @@ export class DocumentProcessorService extends WorkerHost {
           finalName: generatedName,
           finalStorageKey,
           aiProvider: aiProvider.name,
+          aiModel: aiProvider.model,
           title: metadata.title,
           category: metadata.category,
           documentDate: metadata.documentDate,
@@ -269,7 +319,7 @@ export class DocumentProcessorService extends WorkerHost {
         where: { id: documentId },
         data: {
           status: DocumentStatus.FAILED,
-          errorMessage: (error as Error).message || 'Unknown processing error',
+          errorMessage: sanitizeAiError(error) || 'Unknown processing error',
         },
       });
     } finally {
