@@ -58,7 +58,7 @@ export class OllamaProvider implements AiProvider {
         (e as Error).message,
       );
       const repairSystem =
-        'You are a JSON repair assistant. Return ONLY valid JSON matching the requested schema. No talk.';
+        'You are a JSON repair assistant. Return ONLY valid JSON matching the requested schema. No talk. Do NOT wrap your output in markdown code blocks like ```json or similar. Start your response directly with { and end with }.';
       const repairPrompt = `The following JSON was invalid or failed schema validation:
 ${callResult.response}
 
@@ -153,6 +153,7 @@ The document may contain privacy placeholders like [PERSON_1], [ADDRESS_1], [VAT
 
 ### OUTPUT FORMAT
 Return ONLY a valid JSON object matching the schema below. No preamble, no markdown, no explanation.
+IMPORTANT: You MUST start your response directly with '{' and end with '}'. Do NOT wrap your output in markdown code blocks like \`\`\`json or similar.
 
 ### SCHEMA
 {
