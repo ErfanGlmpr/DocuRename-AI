@@ -23,6 +23,6 @@ import { DocumentsModule } from '../documents/documents.module';
     DocumentProcessorService,
     PromptMinimizationService,
   ],
-  exports: [PdfExtractionService],
+  exports: [PdfExtractionService, PromptMinimizationService],
 })
 export class ProcessingModule {}

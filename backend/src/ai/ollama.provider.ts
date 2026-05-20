@@ -1,46 +1,58 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+import { AiProvider, AiProviderHealth, ExtractionResult } from './ai.provider';
 import {
-  AiProvider,
-  DocumentMetadata,
-  DocumentMetadataSchema,
-  ExtractionResult,
-} from './ai.provider';
+  buildDocumentMetadataSystemPrompt,
+  buildDocumentMetadataUserPrompt,
+  buildRepairPrompt,
+} from './prompts/document-metadata.prompt';
+import { parseAiJson, sanitizeAiError } from './utils/parse-ai-json';
 
 @Injectable()
 export class OllamaProvider implements AiProvider {
-  name = 'ollama';
+  readonly name = 'ollama';
   private readonly logger = new Logger(OllamaProvider.name);
   private readonly baseUrl: string;
-  private readonly model: string;
+  private readonly defaultModel: string;
+  private readonly timeoutMs: number;
 
   constructor(private configService: ConfigService) {
     this.baseUrl =
       this.configService.get<string>('OLLAMA_BASE_URL') ||
       'http://127.0.0.1:11434';
-    this.model =
-      this.configService.get<string>('OLLAMA_MODEL') || 'llama3.1:8b';
+    this.defaultModel =
+      this.configService.get<string>('OLLAMA_MODEL') || 'gemma3:4b';
+    this.timeoutMs = parseInt(
+      this.configService.get<string>('AI_REQUEST_TIMEOUT_MS') || '180000',
+      10,
+    );
+  }
+
+  get model(): string {
+    return this.defaultModel;
   }
 
   async extractDocumentMetadata(
-    input: { text: string; originalFilename: string },
+    input: { text: string; originalFilename: string; modelOverride?: string },
     signal?: AbortSignal,
   ): Promise<ExtractionResult> {
-    const { system, prompt } = this.buildPrompt(
-      input.text,
-      input.originalFilename,
-    );
+    const activeModel = input.modelOverride ?? this.defaultModel;
+    const system = buildDocumentMetadataSystemPrompt();
+    const prompt = buildDocumentMetadataUserPrompt({
+      text: input.text,
+      originalFilename: input.originalFilename,
+    });
 
     let accumulatedPromptTokens = 0;
     let accumulatedCompletionTokens = 0;
 
-    let callResult = await this.callOllama(prompt, system, signal);
+    let callResult = await this.callOllama(activeModel, prompt, system, signal);
     accumulatedPromptTokens += callResult.promptTokens;
     accumulatedCompletionTokens += callResult.completionTokens;
 
     try {
-      const metadata = this.parseAndValidate(callResult.response);
+      const metadata = parseAiJson(callResult.response);
       return {
         metadata,
         tokenUsage: {
@@ -49,27 +61,37 @@ export class OllamaProvider implements AiProvider {
           totalTokens: accumulatedPromptTokens + accumulatedCompletionTokens,
         },
       };
-    } catch (e: any) {
-      if ((e as Error).name === 'AbortError' || axios.isCancel(e)) {
+    } catch (e: unknown) {
+      if (
+        (e as Error).name === 'AbortError' ||
+        axios.isCancel(e) ||
+        (e as Error).message === 'AbortError'
+      ) {
         throw e;
       }
+
       this.logger.warn(
         'Initial validation failed, retrying with repair prompt',
         (e as Error).message,
       );
+
       const repairSystem =
         'You are a JSON repair assistant. Return ONLY valid JSON matching the requested schema. No talk. Do NOT wrap your output in markdown code blocks like ```json or similar. Start your response directly with { and end with }.';
-      const repairPrompt = `The following JSON was invalid or failed schema validation:
-${callResult.response}
+      const repairPrompt = buildRepairPrompt(
+        callResult.response,
+        (e as Error).message,
+      );
 
-Error: ${(e as Error).message}
-
-Please return ONLY valid JSON matching the schema exactly.`;
-      callResult = await this.callOllama(repairPrompt, repairSystem, signal);
+      callResult = await this.callOllama(
+        activeModel,
+        repairPrompt,
+        repairSystem,
+        signal,
+      );
       accumulatedPromptTokens += callResult.promptTokens;
       accumulatedCompletionTokens += callResult.completionTokens;
 
-      const metadata = this.parseAndValidate(callResult.response);
+      const metadata = parseAiJson(callResult.response);
       return {
         metadata,
         tokenUsage: {
@@ -81,20 +103,38 @@ Please return ONLY valid JSON matching the schema exactly.`;
     }
   }
 
-  private parseAndValidate(result: string): DocumentMetadata {
-    // Attempt to extract JSON if markdown wrapped
-    let jsonStr = result;
-    const jsonMatch = result.match(/```(?:json)?(.*?)```/s);
-    if (jsonMatch) {
-      jsonStr = jsonMatch[1];
+  async healthCheck(): Promise<AiProviderHealth> {
+    const start = Date.now();
+    try {
+      await axios.post(
+        `${this.baseUrl}/api/generate`,
+        {
+          model: this.defaultModel,
+          prompt: 'ping',
+          stream: false,
+          options: { num_predict: 1 },
+        },
+        { timeout: 10000 },
+      );
+      return {
+        provider: this.name,
+        model: this.defaultModel,
+        ok: true,
+        latencyMs: Date.now() - start,
+      };
+    } catch (error: unknown) {
+      return {
+        provider: this.name,
+        model: this.defaultModel,
+        ok: false,
+        latencyMs: Date.now() - start,
+        errorMessage: sanitizeAiError(error),
+      };
     }
-    jsonStr = jsonStr.trim();
-
-    const parsed = JSON.parse(jsonStr) as unknown;
-    return DocumentMetadataSchema.parse(parsed);
   }
 
   private async callOllama(
+    model: string,
     prompt: string,
     system?: string,
     signal?: AbortSignal,
@@ -107,19 +147,21 @@ Please return ONLY valid JSON matching the schema exactly.`;
       const response = await axios.post(
         `${this.baseUrl}/api/generate`,
         {
-          model: this.model,
+          model,
           prompt,
           system,
           stream: false,
           format: 'json',
           options: {
-            num_ctx: 8192, // Expanded context window
-            temperature: 0, // Deterministic output
+            num_ctx: 8192,
+            temperature: parseFloat(
+              this.configService.get<string>('AI_TEMPERATURE') || '0',
+            ),
           },
         },
         {
-          timeout: 1800000, // 30 minutes timeout
-          signal, // Pass the AbortSignal to axios
+          timeout: this.timeoutMs,
+          signal,
         },
       );
 
@@ -134,48 +176,12 @@ Please return ONLY valid JSON matching the schema exactly.`;
         promptTokens: responseData.prompt_eval_count || 0,
         completionTokens: responseData.eval_count || 0,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error(
         'Failed to communicate with Ollama',
         (error as Error).message,
       );
       throw error;
     }
-  }
-
-  private buildPrompt(
-    text: string,
-    originalFilename: string,
-  ): { system: string; prompt: string } {
-    const system = `### TASK
-Extract structured metadata from the document text provided by the user. 
-The document may contain privacy placeholders like [PERSON_1], [ADDRESS_1], [VAT_ID_1], etc. Treat these as actual names or identifiers.
-
-### OUTPUT FORMAT
-Return ONLY a valid JSON object matching the schema below. No preamble, no markdown, no explanation.
-IMPORTANT: You MUST start your response directly with '{' and end with '}'. Do NOT wrap your output in markdown code blocks like \`\`\`json or similar.
-
-### SCHEMA
-{
-  "title": "A clear, professional title for the document",
-  "category": "invoice" | "contract" | "receipt" | "bank_statement" | "tax_document" | "legal_document" | "medical_document" | "resume" | "report" | "other",
-  "documentDate": "ISO 8601 date string (YYYY-MM-DD) or null",
-  "issuer": "Entity that issued the document (e.g., GASAG) or null",
-  "recipient": "Entity receiving the document or null",
-  "referenceNumber": "Invoice number, customer ID, or reference ID or null",
-  "suggestedFilename": "A concise, safe filename ending in .pdf (e.g., 2026-01-16_GASAG_Stromrechnung.pdf)",
-  "confidence": A number between 0.0 and 1.0 (ignore redaction when scoring),
-  "summary": "A concise 1-sentence summary",
-  "language": "ISO 639-1 two-letter language code for the primary language of the document (e.g., 'de', 'en', 'fr', 'es'). Default to 'en' if unsure."
-}`;
-
-    const prompt = `### CONTEXT
-Original Filename: "${originalFilename}"
-
-### DOCUMENT TEXT
-${text}
-`;
-
-    return { system, prompt };
   }
 }

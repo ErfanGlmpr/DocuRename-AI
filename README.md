@@ -124,8 +124,28 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
 ---
 
-## Limitations & Roadmap
+## Phase 3: Cloud AI & Model Evaluation (New!)
+Phase 3 introduces support for swappable cloud AI providers and a backend model-evaluation workflow to compare accuracy. **Privacy is strictly enforced**: cloud providers only receive the minimized, redacted text (no raw text, no original PII).
+
+Supported Providers:
+- **Ollama** (Local, default)
+- **OpenAI** (json_schema mode)
+- **Anthropic** (Tool-use mode)
+- **Gemini** (generateContent schema mode)
+- **Mistral** (json_object mode)
+- **OpenAI-Compatible** (vLLM, LM Studio, OpenRouter)
+
+### Model Evaluation Workflow
+You can compare how different models perform on the same document:
+1. `GET /ai/providers` — List available providers and configuration status.
+2. `POST /ai/providers/:provider/health` — Check connectivity.
+3. `POST /documents/:id/ai-evaluations` — Run a single model against a document.
+4. `POST /documents/:id/ai-evaluations/batch` — Run multiple models sequentially.
+
+---
+
+## Limitations & Next Steps
 - **No OCR**: Scanned image PDFs are not supported yet.
-- **Deterministic Detection**: May miss unlabeled names/addresses.
-- **Roadmap**: Add OCR support, Cloud AI providers, and Multi-tenancy.
-```
+- **No Frontend**: The model-comparison UI is backend-only for now.
+- **Next Phase**: OCR for scanned PDFs, Frontend UI, and Auth/Multi-tenancy.
+

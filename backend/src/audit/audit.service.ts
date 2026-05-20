@@ -52,6 +52,7 @@ export class AuditService {
       'decryptedMap',
       'prompt',
       'originalValue',
+      'apiKey',
     ];
 
     const sanitized: Record<string, unknown> = { ...metadata };
