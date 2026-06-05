@@ -6,15 +6,63 @@ datasource db {
   provider = "postgresql"
 }
 
+// ─── Auth / Multi-Tenant Models ───────────────────────────────────────────────
+
+model User {
+  id               String   @id @default(uuid())
+  email            String   @unique
+  name             String?
+  passwordHash     String
+  refreshTokenHash String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  memberships OrganizationMember[]
+  documents   Document[]
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members   OrganizationMember[]
+  documents Document[]
+}
+
+model OrganizationMember {
+  id             String           @id @default(uuid())
+  userId         String
+  organizationId String
+  role           OrganizationRole
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+}
+
+enum OrganizationRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+// ─── Document Models ──────────────────────────────────────────────────────────
+
 model Document {
-  id                   String              @id @default(uuid())
+  id                   String          @id @default(uuid())
   originalName         String
   generatedName        String?
   finalName            String?
   mimeType             String
   sizeBytes            Int
   sha256               String
-  status               DocumentStatus      @default(UPLOADED)
+  status               DocumentStatus  @default(UPLOADED)
   storageKey           String
   finalStorageKey      String?
   pageCount            Int?
@@ -30,21 +78,21 @@ model Document {
   summary              String?
   confidence           Float?
   errorMessage         String?
-  createdAt            DateTime            @default(now())
-  updatedAt            DateTime            @updatedAt
-  aiInputMode          AiInputMode         @default(REDACTED_TEXT)
-  piiDetected          Boolean             @default(false)
-  piiEntityCount       Int                 @default(0)
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  aiInputMode          AiInputMode     @default(REDACTED_TEXT)
+  piiDetected          Boolean         @default(false)
+  piiEntityCount       Int             @default(0)
   piiProcessedAt       DateTime?
   piiTokenMapEncrypted Json?
-  privacyMode          PrivacyMode         @default(REDACTED)
+  privacyMode          PrivacyMode     @default(REDACTED)
   redactedText         String?
   processingDuration   Int?
   promptTokens         Int?
   completionTokens     Int?
   totalTokens          Int?
   // Phase 4: OCR
-  ocrUsed              Boolean             @default(false)
+  ocrUsed              Boolean         @default(false)
   ocrTextLength        Int?
   // Phase 4: Quality scoring
   qualityScore         Int?
@@ -53,17 +101,29 @@ model Document {
   inputTextLength      Int?
   processingDurationMs Int?
   // Phase 4: Virus scanning
-  virusScanned         Boolean             @default(false)
+  virusScanned         Boolean         @default(false)
   virusScanResult      String?
-  evaluationRuns       AiEvaluationRun[]
+  // Phase 5: Tenant ownership (required by Ticket 2.3 — optional during Ticket 1.x)
+  userId               String?
+  organizationId       String?
+
+  user         User?             @relation(fields: [userId], references: [id])
+  organization Organization?     @relation(fields: [organizationId], references: [id])
+  evaluationRuns AiEvaluationRun[]
+
+  @@index([organizationId])
+  @@index([userId])
 }
 
 model AuditLog {
-  id         String   @id @default(uuid())
-  documentId String?
-  action     String
-  metadata   Json?
-  createdAt  DateTime @default(now())
+  id             String   @id @default(uuid())
+  documentId     String?
+  action         String
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  // Phase 5: Actor context
+  actorUserId    String?
+  organizationId String?
 }
 
 model AiEvaluationRun {
@@ -90,7 +150,12 @@ model AiEvaluationRun {
   errorMessage      String?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
+  // Phase 5: Actor context
+  actorUserId       String?
+  organizationId    String?
 }
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
 
 enum DocumentStatus {
   UPLOADED

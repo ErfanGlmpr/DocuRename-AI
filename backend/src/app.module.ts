@@ -17,6 +17,8 @@ import { AiEvaluationModule } from './ai-evaluation/ai-evaluation.module';
 import { EventsModule } from './events/events.module';
 import { ObservabilityModule } from './observability/observability.module';
 import { HealthModule } from './health/health.module';
+// Phase 5
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { HealthModule } from './health/health.module';
     EventsModule,
     ObservabilityModule,
     HealthModule,
+    // Phase 5
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
