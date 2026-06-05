@@ -17,13 +17,15 @@ async function bootstrap() {
     .setTitle('PDF AI Renamer API')
     .setDescription(
       'The API for managing and processing PDF documents using AI. ' +
-        'Phase 4: OCR, virus scanning, SSE events, metrics, health checks.',
+        'Phase 5: Authentication, multi-tenant isolation.',
     )
-    .setVersion('4.0')
+    .setVersion('5.0')
+    .addTag('auth')
     .addTag('documents')
     .addTag('events')
     .addTag('health')
     .addTag('observability')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

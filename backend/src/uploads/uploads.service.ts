@@ -40,7 +40,7 @@ export class UploadsService {
       // Upload to MinIO
       await this.storage.uploadBuffer(storageKey, file.buffer, file.mimetype);
 
-      // Create record
+      // Create record (userId/organizationId populated in Ticket 2.3 when auth is enforced)
       const document = await this.prisma.document.create({
         data: {
           id: documentId,
@@ -50,6 +50,8 @@ export class UploadsService {
           sha256: hash,
           storageKey,
           status: DocumentStatus.QUEUED,
+          userId: null,
+          organizationId: null,
         },
       });
 
