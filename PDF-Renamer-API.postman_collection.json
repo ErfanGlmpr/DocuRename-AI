@@ -306,6 +306,90 @@
           ]
         }
       }
+    },
+    {
+      "name": "Get Fast Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Detailed Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health/detailed",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "health",
+            "detailed"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Prometheus Metrics",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/metrics",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "metrics"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Stream All Document Events (SSE)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/documents/events",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "documents",
+            "events"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Stream Single Document Events (SSE)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/documents/{{document_id}}/events",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "documents",
+            "{{document_id}}",
+            "events"
+          ]
+        }
+      }
     }
   ],
   "variable": [

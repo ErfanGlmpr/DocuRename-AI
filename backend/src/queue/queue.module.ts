@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { RetryPolicyService } from './retry-policy.service';
 
 @Module({
   imports: [
@@ -16,8 +17,16 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
     BullModule.registerQueue({
       name: 'document-processing',
+      defaultJobOptions: {
+        // 1 initial attempt + 3 retries = 4 total
+        attempts: 4,
+        backoff: { type: 'custom' },
+        removeOnComplete: { count: 100 },
+        removeOnFail: { count: 500 },
+      },
     }),
   ],
-  exports: [BullModule],
+  providers: [RetryPolicyService],
+  exports: [BullModule, RetryPolicyService],
 })
 export class QueueModule {}

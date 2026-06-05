@@ -5,19 +5,32 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // SSE requires keep-alive connections to stay open.
+  // Set a generous keepAliveTimeout so Node's HTTP server doesn't
+  // close the connection before the client sees all events.
+  const httpAdapter = app.getHttpAdapter();
+  const httpServer = httpAdapter.getHttpServer() as import('http').Server;
+  httpServer.keepAliveTimeout = 60_000; // 60 s
+  httpServer.headersTimeout = 65_000; // must be > keepAliveTimeout
+
   const config = new DocumentBuilder()
     .setTitle('PDF AI Renamer API')
     .setDescription(
-      'The API for managing and processing PDF documents using AI',
+      'The API for managing and processing PDF documents using AI. ' +
+        'Phase 4: OCR, virus scanning, SSE events, metrics, health checks.',
     )
-    .setVersion('1.0')
+    .setVersion('4.0')
     .addTag('documents')
+    .addTag('events')
+    .addTag('health')
+    .addTag('observability')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
   await app.listen(process.env.PORT ?? 3000);
 }
+
 bootstrap().catch((err: Error) => {
   console.error('Failed to start application', err.message);
 });
