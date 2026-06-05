@@ -13,6 +13,10 @@ import { PrivacyModule } from './privacy/privacy.module';
 import { AuditModule } from './audit/audit.module';
 import { CancellationModule } from './cancellation/cancellation.module';
 import { AiEvaluationModule } from './ai-evaluation/ai-evaluation.module';
+// Phase 4
+import { EventsModule } from './events/events.module';
+import { ObservabilityModule } from './observability/observability.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -28,6 +32,10 @@ import { AiEvaluationModule } from './ai-evaluation/ai-evaluation.module';
     PrivacyModule,
     AuditModule,
     AiEvaluationModule,
+    // Phase 4
+    EventsModule,
+    ObservabilityModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

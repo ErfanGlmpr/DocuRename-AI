@@ -32,43 +32,62 @@ Phase 2 adds a robust privacy pipeline before data is sent to the AI:
 
 ## Local Setup Instructions
 
-### 1. Start Infrastructure (Docker Compose)
-Make sure Docker is running. From the root of the project, run:
-```bash
-docker-compose up -d
-```
-This starts PostgreSQL, Redis, MinIO, and Ollama.
+### Prerequisites
+- Node.js 18+
+- Docker and Docker Compose
 
-### 2. Pull the Ollama Model
-The Ollama container starts empty; you must pull the model manually. **This only needs to be done once**, as the model is stored in a persistent Docker volume:
-```bash
-docker exec -it pdf_ai_ollama ollama pull llama3.1:8b
-```
-
-### 3. Setup Backend (NPM)
+### 1. Configure Environment (Backend)
 Navigate to the `backend` directory:
 ```bash
 cd backend
 ```
+Copy the example environment file:
+```bash
+cp .env.example .env
+```
+*(Note: `.env` already contains local dev defaults. For cloud models like Gemini, OpenAI, etc. you'll need to configure their respective API keys).*
+
+### 2. Start Infrastructure (Docker Compose)
+Make sure Docker is running. From the **root** of the project, run:
+```bash
+docker compose up -d
+```
+This starts:
+- **PostgreSQL** (Port 5434)
+- **Redis** (Port 6379)
+- **MinIO** (Port 9000/9001)
+- **Ollama** (Port 11434)
+- **ClamAV** (Port 3310 - Virus scanner)
+- **OCR Sidecar** (Port 8080 - Python FastAPI Tesseract service)
+
+> [!NOTE]
+> **First-time startup notes:**
+> - The **OCR Sidecar** needs to download Tesseract language packs during its first build. To verify or build it specifically, run `docker compose build ocr-sidecar`.
+> - **ClamAV** will take 5-10 minutes on its first run to download its database of signature definitions. Until completed, virus scanning requests will fail/log warnings if enabled.
+
+### 3. Pull the Ollama Model
+The Ollama container starts empty; you must pull the default model manually (this is persistent):
+```bash
+docker exec -it pdf_ai_ollama ollama pull llama3.1:8b
+```
+
+### 4. Setup Backend (NPM & Prisma)
+From the `backend` directory:
 
 1. **Install dependencies**:
    ```bash
    npm install
    ```
 
-2. **Configure Environment**:
-   Copy the example environment file and ensure `PII_ENCRYPTION_KEY` is set:
+2. **Initialize Database and Generate Client**:
+   Apply existing migrations to the database and generate the Prisma Client:
    ```bash
-   cp .env.example .env
-   ```
-   *(Note: .env.example already contains a sample key for local development)*
-
-3. **Initialize Database**:
-   ```bash
-   npx prisma migrate dev --name init
+   npx prisma db push
+   # Or to run standard migration workflows:
+   # npx prisma migrate dev
    ```
 
-4. **Build the project**:
+3. **Start Development Server**:
    ```bash
    npm run start:dev
    ```
@@ -144,8 +163,95 @@ You can compare how different models perform on the same document:
 
 ---
 
-## Limitations & Next Steps
-- **No OCR**: Scanned image PDFs are not supported yet.
-- **No Frontend**: The model-comparison UI is backend-only for now.
-- **Next Phase**: OCR for scanned PDFs, Frontend UI, and Auth/Multi-tenancy.
+---
 
+## Phase 4: Production Readiness (New!)
+
+Phase 4 adds enterprise-grade reliability and observability features.
+
+### OCR Support (Scanned PDFs)
+- **OCR sidecar**: A Python FastAPI microservice (`ocr-sidecar/`) running `pytesseract` + `pdf2image` + poppler-utils.
+- **Automatic fallback**: OCR only triggers when pdf-parse extracts fewer than `OCR_MIN_TEXT_LENGTH` characters.
+- **Language support**: English, German, French, Spanish, Dutch — add more via the Dockerfile.
+- **Enable**: Set `OCR_ENABLED=true` and `OCR_SIDECAR_URL=http://localhost:8080`.
+
+### Virus Scanning (ClamAV)
+- **ClamAV daemon (clamd)** scans every uploaded PDF before text extraction.
+- **Enable**: Set `VIRUS_SCAN_ENABLED=true` and start the `clamav` Docker service.
+- **Graceful degradation**: If clamd is unreachable, processing continues with a warning log.
+- **Infected documents** are permanently rejected (status `INFECTED`) and never sent to AI.
+- **Note**: First `clamav` container startup downloads ~300 MB of virus definitions.
+
+### Real-Time SSE Events
+Stream document lifecycle events without polling:
+```
+GET /documents/events         # all documents
+GET /documents/:id/events     # single document
+```
+Events: `DOCUMENT_QUEUED`, `DOCUMENT_PROCESSING_STARTED`, `DOCUMENT_VIRUS_SCAN_STARTED/PASSED`, `DOCUMENT_TEXT_EXTRACTED`, `DOCUMENT_OCR_STARTED/COMPLETED`, `DOCUMENT_PII_DETECTED`, `DOCUMENT_AI_STARTED/COMPLETED`, `DOCUMENT_COMPLETED`, `DOCUMENT_FAILED`.
+
+### Prometheus Metrics
+```
+GET /metrics                  # Prometheus text format
+```
+Counters: `documents_processed_total`, `documents_failed_total`, `ocr_runs_total`, `ocr_success_total`, `virus_scan_total`, `virus_scan_failed_total`, `provider_requests_total{provider}`, `provider_failures_total{provider}`.
+Histograms: `document_processing_duration_seconds`, `ai_latency_seconds{provider}`.
+Disable with `METRICS_ENABLED=false`.
+
+### Health Checks
+```
+GET /health                   # fast liveness: DB + Redis
+GET /health/detailed          # all deps: DB, Redis, MinIO, AI provider, Queue
+```
+
+### Reliability Improvements
+- **Custom retry backoff**: Failed jobs retry at 1 min → 5 min → 15 min (3 retries max).
+- **Non-retryable classification**: Infected files, invalid PDFs, and user cancellations are never retried (`UnrecoverableError`).
+- **Processing timeout**: `DOCUMENT_PROCESSING_TIMEOUT_MS=900000` (15 min default). Documents exceeding this are marked `FAILED` and not retried.
+
+### Document Quality Score
+Every processed document receives a quality score (0–100) stored in `qualityScore`:
+- **25 pts** — Extraction quality (chars/page, OCR penalty -10)
+- **35 pts** — AI confidence
+- **40 pts** — Metadata completeness (title, category, date, issuer, summary, recipient, ref)
+
+### Large Document Handling
+`DocumentChunkingService` selects the most information-dense sections for documents exceeding `AI_MAX_INPUT_CHARS`, prioritising headings (40pts), keyword-rich lines (30pts), and first-page content (10pts). Stores `chunkCount` and `inputTextLength` for audit.
+
+---
+
+## Docker Compose (Phase 4)
+
+All services (including OCR sidecar and ClamAV) are available by default:
+```bash
+docker compose up -d
+```
+
+Enable OCR and virus scanning in `.env`:
+```bash
+OCR_ENABLED=true
+OCR_SIDECAR_URL=http://localhost:8080
+VIRUS_SCAN_ENABLED=true
+CLAMAV_HOST=localhost
+```
+
+Build the OCR sidecar image (only needed once or after changes):
+```bash
+docker compose build ocr-sidecar
+```
+
+---
+
+## Known Limitations
+- **No frontend UI** — API only.
+- **OCR sidecar first-build time**: The Docker image downloads Tesseract language packs on first build (~200 MB).
+- **ClamAV cold start**: First startup downloads virus definitions (~300 MB). Subsequent restarts are fast.
+- **SSE**: Uses in-process RxJS Subject. If running multiple API instances behind a load balancer, clients should connect to the same instance (sticky sessions) or use Redis pub/sub (future work).
+
+## Future Roadmap
+- Frontend React UI
+- Authentication & multi-tenancy
+- Semantic search with vector embeddings
+- Batch processing API
+- Webhook callbacks for document events
+- Redis pub/sub for multi-instance SSE

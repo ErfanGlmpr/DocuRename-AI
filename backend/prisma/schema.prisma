@@ -43,6 +43,18 @@ model Document {
   promptTokens         Int?
   completionTokens     Int?
   totalTokens          Int?
+  // Phase 4: OCR
+  ocrUsed              Boolean             @default(false)
+  ocrTextLength        Int?
+  // Phase 4: Quality scoring
+  qualityScore         Int?
+  // Phase 4: Document chunking
+  chunkCount           Int?
+  inputTextLength      Int?
+  processingDurationMs Int?
+  // Phase 4: Virus scanning
+  virusScanned         Boolean             @default(false)
+  virusScanResult      String?
   evaluationRuns       AiEvaluationRun[]
 }
 
@@ -83,12 +95,14 @@ model AiEvaluationRun {
 enum DocumentStatus {
   UPLOADED
   QUEUED
+  VIRUS_SCANNING
   EXTRACTING_TEXT
   ANALYZING_WITH_AI
   RENAMING
   COMPLETED
   FAILED
   NEEDS_REVIEW
+  INFECTED
 }
 
 enum PrivacyMode {

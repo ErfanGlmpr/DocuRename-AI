@@ -6,6 +6,7 @@ import {
   GetObjectCommand,
   CopyObjectCommand,
   DeleteObjectCommand,
+  HeadBucketCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
@@ -113,5 +114,10 @@ export class StorageService {
       this.logger.error(`Failed to delete object from S3 key ${key}`, error);
       throw error;
     }
+  }
+
+  /** Checks that the configured bucket is accessible. Used by HealthService. */
+  async healthCheck(): Promise<void> {
+    await this.s3Client.send(new HeadBucketCommand({ Bucket: this.bucket }));
   }
 }

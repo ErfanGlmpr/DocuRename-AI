@@ -67,10 +67,48 @@ services:
       - '11434:11434'
     volumes:
       - ollama_data:/root/.ollama
-    # Note: You will need to manually exec into the container and run `ollama run llama3.1:8b` or pull the model.
+    # Note: exec into the container and run `ollama pull gemma3:4b` to download a model.
+
+  # ─── Phase 4: OCR Sidecar ───────────────────────────────────────────────
+  # Python FastAPI microservice: pytesseract + pdf2image + poppler-utils.
+  # Build with: docker compose build ocr-sidecar
+  # Set OCR_ENABLED=true and OCR_SIDECAR_URL=http://ocr-sidecar:8080 in backend .env
+  ocr-sidecar:
+    build:
+      context: ./ocr-sidecar
+      dockerfile: Dockerfile
+    container_name: pdf_ai_ocr_sidecar
+    ports:
+      - '8080:8080'
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+  # ─── Phase 4: ClamAV ─────────────────────────────────────────────────────
+  # Antivirus daemon (clamd) — listens on TCP port 3310.
+  # Set VIRUS_SCAN_ENABLED=true and CLAMAV_HOST=clamav in backend .env
+  # Note: First startup downloads the virus definition database (~300 MB).
+  #       Subsequent startups are fast.
+  clamav:
+    image: clamav/clamav:stable
+    container_name: pdf_ai_clamav
+    ports:
+      - '3310:3310'
+    volumes:
+      - clamav_data:/var/lib/clamav
+    healthcheck:
+      test: ["CMD", "clamdscan", "--ping", "1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s   # First startup downloads virus definitions
+      retries: 5
 
 volumes:
   postgres_data:
   redis_data:
   minio_data:
   ollama_data:
+  clamav_data:

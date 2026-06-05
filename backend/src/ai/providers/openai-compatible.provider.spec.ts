@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { OpenAiCompatibleProvider } from './openai-compatible.provider';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
