@@ -248,6 +248,7 @@ Add endpoints:
 ```txt
 POST /organizations
 POST /organizations/:id/members
+GET /organizations/:id/members
 POST /auth/switch-organization
 ```
 
@@ -255,6 +256,7 @@ POST /auth/switch-organization
 
 * `POST /organizations`: Create a new organization and assign the creator as `OWNER`.
 * `POST /organizations/:id/members`: Add a user (by email or ID) to the organization with a specified role. Requires caller to be `OWNER` or `ADMIN`.
+* `GET /organizations/:id/members`: Returns a list of members in the organization. Requires caller to be a member.
 * `POST /auth/switch-organization`: Accepts a target `organizationId`. Validates the user is a member of that organization. Returns a new JWT `accessToken` with the new `organizationId` encoded in the payload.
 
 **Acceptance Criteria:**

@@ -7,6 +7,7 @@ import {
   ConflictException,
   UnauthorizedException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
@@ -231,6 +232,56 @@ describe('AuthService', () => {
       await expect(
         service.login({ email: 'test@example.com', password: 'wrong' }),
       ).rejects.toThrow(UnauthorizedException);
+    });
+  });
+
+  describe('switchOrganization', () => {
+    it('should issue new tokens if user is a member of the target organization', async () => {
+      const validUser = {
+        id: 'user-1',
+        email: 'test@example.com',
+        name: 'Test',
+        memberships: [
+          {
+            organizationId: 'org-2',
+            role: 'MEMBER',
+            createdAt: new Date(),
+            organization: { id: 'org-2', name: 'Other Org' },
+          },
+        ],
+      };
+
+      // Mock assertOrganizationMember
+      jest
+        .spyOn(service, 'assertOrganizationMember')
+        .mockResolvedValue(undefined);
+
+      mockPrisma.user.findUnique.mockResolvedValueOnce(validUser); // buildAuthResponseForUser
+
+      mockJwtService.sign
+        .mockReturnValueOnce('new-access-token')
+        .mockReturnValueOnce('new-refresh-token');
+      (bcryptMock.hash as jest.Mock).mockResolvedValue('hashed-refresh');
+      mockPrisma.user.update.mockResolvedValue({});
+
+      const result = await service.switchOrganization('user-1', 'org-2');
+
+      expect(service.assertOrganizationMember).toHaveBeenCalledWith(
+        'user-1',
+        'org-2',
+      );
+      expect(result.accessToken).toBe('new-access-token');
+      expect(result.user.organizationId).toBe('org-2');
+    });
+
+    it('should throw ForbiddenException if user is not a member of target organization', async () => {
+      jest
+        .spyOn(service, 'assertOrganizationMember')
+        .mockRejectedValue(new ForbiddenException('Not a member'));
+
+      await expect(
+        service.switchOrganization('user-1', 'org-unknown'),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 

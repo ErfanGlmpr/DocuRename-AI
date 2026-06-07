@@ -70,12 +70,13 @@ Track each task below. Check the box **only** when:
 - [x] `npm run lint` — ✅ no errors
 
 ### Ticket 1.4 — Organization Management Endpoints
-- [ ] `POST /organizations` — Create organization endpoint
-- [ ] `POST /organizations/:id/members` — Add member endpoint
-- [ ] `POST /auth/switch-organization` — Switch active organization and reissue JWT
-- [ ] `npm run build` — passes
-- [ ] `npm run test` — tests pass
-- [ ] `npm run lint` — no errors
+- [x] `POST /organizations` — Create organization endpoint
+- [x] `POST /organizations/:id/members` — Add member endpoint
+- [x] `GET /organizations/:id/members` — Get members of organization
+- [x] `POST /auth/switch-organization` — Switch active organization and reissue JWT
+- [x] `npm run build` — passes
+- [x] `npm run test` — tests pass
+- [x] `npm run lint` — no errors
 
 ---
 

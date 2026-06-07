@@ -246,6 +246,7 @@ docker compose build ocr-sidecar
 
 Phase 5 introduces a full SaaS foundation:
 - **Authentication**: JWT-based auth (Register, Login, Refresh, Logout).
+- **Organization Management**: Users can create organizations, invite members, and seamlessly switch active contexts (`POST /auth/switch-organization`).
 - **Tenant Isolation**: Documents, AI evaluation runs, and audit logs are strictly scoped to organizations.
 - **Role-Based Access Control**: Organization `OWNER`, `ADMIN`, and `MEMBER` roles.
 - **API Protection**: JWT guards on all sensitive endpoints.
