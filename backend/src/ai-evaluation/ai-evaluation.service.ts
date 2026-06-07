@@ -43,7 +43,9 @@ export class AiEvaluationService {
   async runEvaluation(
     documentId: string,
     provider: string,
+    organizationId: string,
     modelOverride?: string,
+    actorUserId?: string,
   ) {
     if (!this.aiFactory.isValidProvider(provider)) {
       throw new BadRequestException(
@@ -54,7 +56,7 @@ export class AiEvaluationService {
     const document = await this.prisma.document.findUnique({
       where: { id: documentId },
     });
-    if (!document) {
+    if (!document || document.organizationId !== organizationId) {
       throw new NotFoundException(`Document ${documentId} not found`);
     }
 
@@ -96,6 +98,8 @@ export class AiEvaluationService {
         provider,
         model: modelOverride || provider,
         status: AiEvaluationStatus.RUNNING,
+        actorUserId,
+        organizationId,
       },
     });
 
@@ -107,6 +111,8 @@ export class AiEvaluationService {
         provider,
         model: modelOverride || provider,
       },
+      actorUserId,
+      organizationId,
     });
 
     const startTime = Date.now();
@@ -156,6 +162,8 @@ export class AiEvaluationService {
           latencyMs,
           tokenUsage,
         },
+        actorUserId,
+        organizationId,
       });
 
       return updated;
@@ -182,6 +190,8 @@ export class AiEvaluationService {
           latencyMs,
           errorMessage: safeError,
         },
+        actorUserId,
+        organizationId,
       });
 
       this.logger.warn(
@@ -200,6 +210,8 @@ export class AiEvaluationService {
   async runBatch(
     documentId: string,
     runs: { provider: string; model?: string }[],
+    organizationId: string,
+    actorUserId?: string,
   ): Promise<EvaluationRunSummary> {
     let completed = 0;
     let failed = 0;
@@ -215,7 +227,9 @@ export class AiEvaluationService {
         const result = await this.runEvaluation(
           documentId,
           run.provider,
+          organizationId,
           run.model,
+          actorUserId,
         );
         if (result) {
           runResults.push({
@@ -244,11 +258,11 @@ export class AiEvaluationService {
   /**
    * List all evaluation runs for a document, newest first.
    */
-  async listEvaluations(documentId: string) {
+  async listEvaluations(documentId: string, organizationId: string) {
     const document = await this.prisma.document.findUnique({
       where: { id: documentId },
     });
-    if (!document) {
+    if (!document || document.organizationId !== organizationId) {
       throw new NotFoundException(`Document ${documentId} not found`);
     }
 

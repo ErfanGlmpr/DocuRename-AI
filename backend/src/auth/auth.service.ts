@@ -1,6 +1,7 @@
 import {
   Injectable,
   ConflictException,
+  ForbiddenException,
   UnauthorizedException,
   NotFoundException,
   Logger,
@@ -234,6 +235,76 @@ export class AuthService {
       organizationName: membership.organization.name,
       role: membership.role,
     };
+  }
+
+  // ─── Organization helpers ───────────────────────────────────────────────────
+
+  /**
+   * Asserts that `userId` is an active member of `organizationId`.
+   * Throws `ForbiddenException` if the membership does not exist.
+   * Used by `OrganizationAccessGuard` and service-layer tenant checks.
+   */
+  async assertOrganizationMember(
+    userId: string,
+    organizationId: string,
+  ): Promise<void> {
+    const membership = await this.prisma.organizationMember.findUnique({
+      where: { userId_organizationId: { userId, organizationId } },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException(
+        'You do not have access to this organization',
+      );
+    }
+  }
+
+  /**
+   * Returns the earliest organization the user is a member of.
+   * Throws `NotFoundException` if the user has no memberships.
+   */
+  async getDefaultOrganizationForUser(userId: string): Promise<{
+    organizationId: string;
+    organizationName: string;
+    role: string;
+  }> {
+    const membership = await this.prisma.organizationMember.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'asc' },
+      include: { organization: true },
+    });
+
+    if (!membership) {
+      throw new NotFoundException('No organization membership found for user');
+    }
+
+    return {
+      organizationId: membership.organizationId,
+      organizationName: membership.organization.name,
+      role: membership.role,
+    };
+  }
+
+  /**
+   * Returns full membership context for the user (all organizations + roles).
+   * Ordered by `createdAt` ascending; first entry is the default/primary org.
+   */
+  async getUserMembershipContext(
+    userId: string,
+  ): Promise<
+    Array<{ organizationId: string; organizationName: string; role: string }>
+  > {
+    const memberships = await this.prisma.organizationMember.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'asc' },
+      include: { organization: true },
+    });
+
+    return memberships.map((m) => ({
+      organizationId: m.organizationId,
+      organizationName: m.organization.name,
+      role: m.role,
+    }));
   }
 
   // ─── Private helpers ──────────────────────────────────────────────────────

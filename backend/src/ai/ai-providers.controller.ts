@@ -1,8 +1,21 @@
-import { Controller, Get, Post, Param, Logger } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Logger,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { AiProviderFactory } from './ai.factory';
 import { AuditService } from '../audit/audit.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 interface ProviderInfo {
   name: string;
@@ -12,6 +25,8 @@ interface ProviderInfo {
 }
 
 @ApiTags('ai')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('ai')
 export class AiProvidersController {
   private readonly logger = new Logger(AiProvidersController.name);

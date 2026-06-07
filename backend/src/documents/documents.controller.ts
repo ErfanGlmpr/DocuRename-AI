@@ -6,19 +6,31 @@ import {
   Delete,
   Param,
   Body,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { DocumentsService } from './documents.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
 
 @ApiTags('documents')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('documents')
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all documents' })
-  async findAll() {
-    return this.documentsService.findAll();
+  @ApiOperation({ summary: 'Get all documents for your organization' })
+  async findAll(@CurrentUser() user: AuthenticatedUser) {
+    return this.documentsService.findAll(user.organizationId);
   }
 
   @Get('stuck')
@@ -45,8 +57,11 @@ export class DocumentsController {
     name: 'id',
     description: 'The unique identifier of the document',
   })
-  async findOne(@Param('id') id: string): Promise<Record<string, unknown>> {
-    return this.documentsService.findOnePublic(id);
+  async findOne(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<Record<string, unknown>> {
+    return this.documentsService.findOnePublic(id, user.organizationId);
   }
 
   @Get(':id/download')
@@ -55,8 +70,11 @@ export class DocumentsController {
     name: 'id',
     description: 'The unique identifier of the document',
   })
-  async getDownloadUrl(@Param('id') id: string) {
-    return this.documentsService.getDownloadUrl(id);
+  async getDownloadUrl(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.documentsService.getDownloadUrl(id, user.organizationId);
   }
 
   @Post(':id/retry')
@@ -65,8 +83,11 @@ export class DocumentsController {
     name: 'id',
     description: 'The unique identifier of the document',
   })
-  async retryProcessing(@Param('id') id: string) {
-    return this.documentsService.retryProcessing(id);
+  async retryProcessing(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.documentsService.retryProcessing(id, user.organizationId);
   }
 
   @Patch(':id/filename')
@@ -88,8 +109,13 @@ export class DocumentsController {
   async updateFilename(
     @Param('id') id: string,
     @Body('filename') filename: string,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.documentsService.updateFilename(id, filename);
+    return this.documentsService.updateFilename(
+      id,
+      filename,
+      user.organizationId,
+    );
   }
 
   @Delete(':id')
@@ -98,8 +124,11 @@ export class DocumentsController {
     name: 'id',
     description: 'The unique identifier of the document',
   })
-  async remove(@Param('id') id: string) {
-    return this.documentsService.remove(id);
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.documentsService.remove(id, user.organizationId);
   }
 
   @Post(':id/cancel')
@@ -108,7 +137,10 @@ export class DocumentsController {
     name: 'id',
     description: 'The unique identifier of the document',
   })
-  async cancel(@Param('id') id: string) {
-    return this.documentsService.cancel(id);
+  async cancel(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.documentsService.cancel(id, user.organizationId);
   }
 }

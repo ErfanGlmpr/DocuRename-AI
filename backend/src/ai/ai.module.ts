@@ -10,9 +10,10 @@ import { GeminiProvider } from './providers/gemini.provider';
 import { MistralProvider } from './providers/mistral.provider';
 import { OpenAiCompatibleProvider } from './providers/openai-compatible.provider';
 import { AiProvidersController } from './ai-providers.controller';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [ConfigModule, AuditModule],
+  imports: [ConfigModule, AuditModule, AuthModule],
   controllers: [AiProvidersController],
   providers: [
     FilenameGeneratorService,

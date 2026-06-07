@@ -22,8 +22,11 @@ export class DocumentsService {
     @InjectQueue('document-processing') private documentQueue: Queue,
   ) {}
 
-  async findAll() {
+  // ─── Organization-scoped queries ─────────────────────────────────────────────
+
+  async findAll(organizationId: string) {
     return this.prisma.document.findMany({
+      where: { organizationId },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
@@ -50,19 +53,23 @@ export class DocumentsService {
     });
   }
 
-  async findOne(id: string) {
-    const document = await this.prisma.document.findUnique({ where: { id } });
-    if (!document) {
+  async findOne(id: string, organizationId: string) {
+    const document = await this.prisma.document.findUnique({
+      where: { id },
+    });
+    if (!document || document.organizationId !== organizationId) {
       throw new NotFoundException(`Document with id ${id} not found`);
     }
     return document;
   }
 
-  async findOnePublic(id: string): Promise<Record<string, unknown>> {
-    const document = await this.findOne(id);
+  async findOnePublic(
+    id: string,
+    organizationId: string,
+  ): Promise<Record<string, unknown>> {
+    const document = await this.findOne(id, organizationId);
 
     // Remove sensitive fields
-
     const publicDocument: Record<string, unknown> = { ...document };
     delete publicDocument.piiTokenMapEncrypted;
     delete publicDocument.redactedText;
@@ -89,8 +96,8 @@ export class DocumentsService {
     });
   }
 
-  async getDownloadUrl(id: string) {
-    const document = await this.findOne(id);
+  async getDownloadUrl(id: string, organizationId: string) {
+    const document = await this.findOne(id, organizationId);
 
     if (
       document.status !== DocumentStatus.COMPLETED &&
@@ -109,8 +116,8 @@ export class DocumentsService {
     return { url };
   }
 
-  async retryProcessing(id: string) {
-    const document = await this.findOne(id);
+  async retryProcessing(id: string, organizationId: string) {
+    const document = await this.findOne(id, organizationId);
 
     if (document.status !== DocumentStatus.FAILED) {
       throw new BadRequestException('Can only retry failed documents');
@@ -131,7 +138,11 @@ export class DocumentsService {
     return { message: 'Document requeued' };
   }
 
-  async updateFilename(id: string, newFilename: string) {
+  async updateFilename(
+    id: string,
+    newFilename: string,
+    organizationId: string,
+  ) {
     let sanitized = newFilename
       .toLowerCase()
       .replace(/[^a-z0-9-_.]/g, '-')
@@ -140,7 +151,7 @@ export class DocumentsService {
       sanitized += '.pdf';
     }
 
-    await this.findOne(id);
+    await this.findOne(id, organizationId);
 
     const updated = await this.prisma.document.update({
       where: { id },
@@ -150,8 +161,8 @@ export class DocumentsService {
     return updated;
   }
 
-  async remove(id: string) {
-    const document = await this.findOne(id);
+  async remove(id: string, organizationId: string) {
+    const document = await this.findOne(id, organizationId);
 
     // Delete original file
     try {
@@ -179,8 +190,8 @@ export class DocumentsService {
     return { message: 'Document deleted successfully' };
   }
 
-  async cancel(id: string) {
-    const document = await this.findOne(id);
+  async cancel(id: string, organizationId: string) {
+    const document = await this.findOne(id, organizationId);
 
     if (
       document.status === DocumentStatus.COMPLETED ||
@@ -203,6 +214,8 @@ export class DocumentsService {
 
     return { message: 'Document processing canceled' };
   }
+
+  // ─── Admin / internal helpers (not organization-scoped) ───────────────────────
 
   async findStuck(): Promise<{
     stuckDocumentsCount: number;

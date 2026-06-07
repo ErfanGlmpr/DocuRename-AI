@@ -5,9 +5,10 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { StorageModule } from '../storage/storage.module';
 import { QueueModule } from '../queue/queue.module';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [PrismaModule, StorageModule, QueueModule, ConfigModule],
+  imports: [PrismaModule, StorageModule, QueueModule, ConfigModule, AuthModule],
   providers: [UploadsService],
   controllers: [UploadsController],
 })

@@ -69,39 +69,65 @@ Track each task below. Check the box **only** when:
 - [x] `npm run test` — ✅ 122 tests, 27 suites, all pass
 - [x] `npm run lint` — ✅ no errors
 
+### Ticket 1.4 — Organization Management Endpoints
+- [ ] `POST /organizations` — Create organization endpoint
+- [ ] `POST /organizations/:id/members` — Add member endpoint
+- [ ] `POST /auth/switch-organization` — Switch active organization and reissue JWT
+- [ ] `npm run build` — passes
+- [ ] `npm run test` — tests pass
+- [ ] `npm run lint` — no errors
+
 ---
 
 ## Milestone 2 — Tenant Isolation and API Protection
 
 ### Ticket 2.1 — Current User Decorator and Organization Access Helpers
-- [ ] `@CurrentUser()` already created in Ticket 1.1 ✓
-- [ ] `guards/organization-access.guard.ts`
-- [ ] `assertOrganizationMember(userId, organizationId)` helper
-- [ ] `getDefaultOrganizationForUser(userId)` helper
-- [ ] `getUserMembershipContext(userId)` helper
+- [x] `@CurrentUser()` already created in Ticket 1.1 ✓
+- [x] `guards/organization-access.guard.ts` — resolves org from params > body > query > JWT, delegates to `assertOrganizationMember`
+- [x] `assertOrganizationMember(userId, organizationId)` — ForbiddenException if not a member
+- [x] `getDefaultOrganizationForUser(userId)` — returns earliest membership by createdAt
+- [x] `getUserMembershipContext(userId)` — returns all memberships as context objects
+- [x] `OrganizationAccessGuard` + `JwtAuthGuard` exported from `AuthModule`
+- [x] 6 new tests for helper methods (`auth.service.spec.ts`)
+- [x] 6 new tests for guard (`organization-access.guard.spec.ts`)
+- [x] `npm run build` — ✅ passes
+- [x] `npm run test` — ✅ 134 tests, 28 suites, all pass
+- [x] `npm run lint` — ✅ no errors
 
 ### Ticket 2.2 — Protect Existing Endpoints with JWT
-- [ ] Add `JwtAuthGuard` to `/uploads/*`
-- [ ] Add `JwtAuthGuard` to `/documents/*`
-- [ ] Add `JwtAuthGuard` to `/ai/providers*`
-- [ ] Add `JwtAuthGuard` to `/ai-evaluations*`
-- [ ] Add `JwtAuthGuard` to `/documents/events` and `/documents/:id/events`
-- [ ] Add `JwtAuthGuard` to `/documents/:id/download`
-- [ ] Keep `/auth/register`, `/auth/login`, `/health` public
-- [ ] Build + test + lint pass
+- [x] Add `JwtAuthGuard` to `UploadsController` (`/documents/upload`) — class-level guard + `@ApiBearerAuth()`
+- [x] Add `JwtAuthGuard` to `DocumentsController` (`/documents/*`) — class-level guard + `@ApiBearerAuth()`
+- [x] Add `JwtAuthGuard` to `AiProvidersController` (`/ai/providers*`) — class-level guard + `@ApiBearerAuth()`
+- [x] Add `JwtAuthGuard` to `AiEvaluationController` (`/documents/:id/ai-evaluations*`) — class-level guard + `@ApiBearerAuth()`
+- [x] Add `JwtAuthGuard` to `DocumentEventsController` (`/documents/events`, `/documents/:id/events`) — class-level guard + `@ApiBearerAuth()`
+- [x] `AuthModule` imported into `UploadsModule`, `DocumentsModule`, `AiModule`, `AiEvaluationModule`, `EventsModule`
+- [x] `/auth/register`, `/auth/login`, `/auth/refresh` remain public
+- [x] `DocumentsController` spec updated to override `JwtAuthGuard` so unit tests pass
+- [x] `npm run build` — ✅ passes
+- [x] `npm run test` — ✅ 134 tests, 28 suites, all pass
+- [x] `npm run lint` — ✅ no errors
 
 ### Ticket 2.3 — Scope Document Queries by Organization
-- [ ] `uploads.service.ts` — populate `userId` + `organizationId` from auth context
-- [ ] `documents.service.ts` — scope `findAll`, `findOne`, `getDownloadUrl`, `retry`, `cancel`, `remove`
-- [ ] `ai-evaluation.service.ts` — scope evaluation queries
-- [ ] `events` — scope SSE stream to org
-- [ ] Make `userId`/`organizationId` required on Document (migrate)
-- [ ] Build + test + lint pass
+- [x] Prisma schema — `userId`/`organizationId` made required (non-nullable) on `Document`
+- [x] Migration `20260607193654_ticket_2_3_require_document_ownership` — deletes legacy ownerless docs, then enforces NOT NULL
+- [x] `uploads.service.ts` — `processUploads` accepts `AuthenticatedUser`, writes `userId` + `organizationId`
+- [x] `uploads.controller.ts` — injects `@CurrentUser()` and passes to `processUploads`
+- [x] `documents.service.ts` — `findAll`, `findOne`, `findOnePublic`, `getDownloadUrl`, `retryProcessing`, `cancel`, `remove`, `updateFilename` all require `organizationId`; `findOne` checks org match before returning
+- [x] `documents.controller.ts` — all org-scoped methods inject `@CurrentUser()` and forward `organizationId`
+- [x] `ai-evaluation.service.ts` — `runEvaluation`, `runBatch`, `listEvaluations` require `organizationId`; scope document lookup to org
+- [x] `ai-evaluation.controller.ts` — injects `@CurrentUser()` and passes `organizationId` to all service calls
+- [x] `document-events.service.ts` — `DocumentEvent` carries `organizationId?`; `streamAllForOrg(organizationId)` added; `buildEvent` accepts optional `organizationId`
+- [x] `document-events.controller.ts` — `streamAll` filtered by org (`streamAllForOrg`); `streamDocument` verifies org ownership before streaming
+- [x] `events.module.ts` — imports `DocumentsModule` for ownership check
+- [x] 4 new tests — `findAll` org query, `findOne` org isolation, controller `findAll` forwarding, controller spec `@CurrentUser` override
+- [x] `npm run build` — ✅ passes
+- [x] `npm run test` — ✅ 138 tests, 28 suites, all pass
+- [x] `npm run lint` — ✅ no errors
 
 ### Ticket 2.4 — Scope Audit Logs and AI Evaluation Runs
-- [ ] Write `actorUserId` + `organizationId` to `AuditLog` when user context is available
-- [ ] Write `actorUserId` + `organizationId` to `AiEvaluationRun`
-- [ ] Build + test + lint pass
+- [x] Write `actorUserId` + `organizationId` to `AuditLog` when user context is available
+- [x] Write `actorUserId` + `organizationId` to `AiEvaluationRun`
+- [x] Build + test + lint pass
 
 ---
 

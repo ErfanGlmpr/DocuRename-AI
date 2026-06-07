@@ -103,12 +103,12 @@ model Document {
   // Phase 4: Virus scanning
   virusScanned         Boolean         @default(false)
   virusScanResult      String?
-  // Phase 5: Tenant ownership (required by Ticket 2.3 — optional during Ticket 1.x)
-  userId               String?
-  organizationId       String?
+  // Phase 5: Tenant ownership (required as of Ticket 2.3)
+  userId               String
+  organizationId       String
 
-  user         User?             @relation(fields: [userId], references: [id])
-  organization Organization?     @relation(fields: [organizationId], references: [id])
+  user         User              @relation(fields: [userId], references: [id])
+  organization Organization      @relation(fields: [organizationId], references: [id])
   evaluationRuns AiEvaluationRun[]
 
   @@index([organizationId])

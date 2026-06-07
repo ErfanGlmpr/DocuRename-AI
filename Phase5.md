@@ -22,7 +22,9 @@ Before starting any ticket, follow these rules:
 * Keep the repository suitable as a public portfolio project.
 * Update/edit the postman collection if needed after each feature/ticket implementation.
 * Once a ticket is complete, run `npm run build`, `npm run test` and `npm run lint` in the backend and frontend directories respectively and check that everything is working.
-* Do not proceed until all tests pass and build succeeds. and linting issues are resolved. 
+* Do not proceed until all tests pass and build succeeds. and linting issues are resolved.
+* Update README.md after each feature/ticket implementation with new features documented and necessary steps for setup and running the project.
+* Update Phase5-Task.md checklist after each ticket implementation with the status of the ticket.
 
 ---
 
@@ -234,6 +236,32 @@ PASSWORD_MIN_LENGTH=10
 * Invalid password fails safely.
 * `GET /auth/me` requires JWT and returns no password hash.
 * Auth errors do not leak sensitive details.
+
+---
+
+## Ticket 1.4 — Organization Management Endpoints
+
+**Goal:** Allow users to create, join, and switch active organizations.
+
+Add endpoints:
+
+```txt
+POST /organizations
+POST /organizations/:id/members
+POST /auth/switch-organization
+```
+
+**Requirements:**
+
+* `POST /organizations`: Create a new organization and assign the creator as `OWNER`.
+* `POST /organizations/:id/members`: Add a user (by email or ID) to the organization with a specified role. Requires caller to be `OWNER` or `ADMIN`.
+* `POST /auth/switch-organization`: Accepts a target `organizationId`. Validates the user is a member of that organization. Returns a new JWT `accessToken` with the new `organizationId` encoded in the payload.
+
+**Acceptance Criteria:**
+
+* User can create additional organizations.
+* User can invite/add members to organizations they manage.
+* User can switch their active context by retrieving a new JWT.
 
 ---
 

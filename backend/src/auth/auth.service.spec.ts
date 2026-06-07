@@ -27,6 +27,9 @@ describe('AuthService', () => {
     },
     organizationMember: {
       create: jest.fn(),
+      findUnique: jest.fn(),
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
     },
     $transaction: jest.fn(),
   };
@@ -336,6 +339,94 @@ describe('AuthService', () => {
       await expect(service.getMe('nonexistent-id')).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('assertOrganizationMember', () => {
+    it('should resolve without error when membership exists', async () => {
+      mockPrisma.organizationMember.findUnique.mockResolvedValue({
+        id: 'mem-1',
+        userId: 'user-1',
+        organizationId: 'org-1',
+        role: 'OWNER',
+      });
+
+      await expect(
+        service.assertOrganizationMember('user-1', 'org-1'),
+      ).resolves.toBeUndefined();
+    });
+
+    it('should throw ForbiddenException when membership does not exist', async () => {
+      mockPrisma.organizationMember.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.assertOrganizationMember('user-1', 'other-org'),
+      ).rejects.toThrow('You do not have access to this organization');
+    });
+  });
+
+  describe('getDefaultOrganizationForUser', () => {
+    it('should return the earliest organization membership', async () => {
+      mockPrisma.organizationMember.findFirst.mockResolvedValue({
+        organizationId: 'org-1',
+        role: 'OWNER',
+        organization: { id: 'org-1', name: 'My Org' },
+      });
+
+      const result = await service.getDefaultOrganizationForUser('user-1');
+
+      expect(result).toEqual({
+        organizationId: 'org-1',
+        organizationName: 'My Org',
+        role: 'OWNER',
+      });
+    });
+
+    it('should throw NotFoundException when user has no memberships', async () => {
+      mockPrisma.organizationMember.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.getDefaultOrganizationForUser('user-without-org'),
+      ).rejects.toThrow('No organization membership found for user');
+    });
+  });
+
+  describe('getUserMembershipContext', () => {
+    it('should return all memberships mapped to context objects', async () => {
+      mockPrisma.organizationMember.findMany.mockResolvedValue([
+        {
+          organizationId: 'org-1',
+          role: 'OWNER',
+          organization: { id: 'org-1', name: 'Primary Org' },
+        },
+        {
+          organizationId: 'org-2',
+          role: 'MEMBER',
+          organization: { id: 'org-2', name: 'Secondary Org' },
+        },
+      ]);
+
+      const result = await service.getUserMembershipContext('user-1');
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        organizationId: 'org-1',
+        organizationName: 'Primary Org',
+        role: 'OWNER',
+      });
+      expect(result[1]).toEqual({
+        organizationId: 'org-2',
+        organizationName: 'Secondary Org',
+        role: 'MEMBER',
+      });
+    });
+
+    it('should return an empty array when user has no memberships', async () => {
+      mockPrisma.organizationMember.findMany.mockResolvedValue([]);
+
+      const result = await service.getUserMembershipContext('user-no-orgs');
+
+      expect(result).toEqual([]);
     });
   });
 });
