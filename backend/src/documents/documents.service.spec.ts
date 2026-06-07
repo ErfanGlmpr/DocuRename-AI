@@ -6,6 +6,8 @@ import { CancellationService } from '../cancellation/cancellation.service';
 import { getQueueToken } from '@nestjs/bullmq';
 import { DocumentStatus } from '@prisma/client';
 
+const ORG_ID = 'org-1';
+
 describe('DocumentsService (Unit - Stuck Detection)', () => {
   let service: DocumentsService;
   let mockQueue: {
@@ -92,7 +94,6 @@ describe('DocumentsService (Unit - Stuck Detection)', () => {
       };
 
       mockPrisma.document.findMany.mockResolvedValue([mockDoc]);
-      // Simulating the job exists in the active queue
       mockQueue.getActive.mockResolvedValue([
         { data: { documentId: 'active-queued-id' } },
       ]);
@@ -115,7 +116,6 @@ describe('DocumentsService (Unit - Stuck Detection)', () => {
       };
 
       mockPrisma.document.findMany.mockResolvedValue([mockDoc]);
-      // Active in queue but has been active for too long
       mockQueue.getActive.mockResolvedValue([
         { data: { documentId: 'chronically-stuck-id' } },
       ]);
@@ -169,6 +169,42 @@ describe('DocumentsService (Unit - Stuck Detection)', () => {
 
       expect(result.reconciledCount).toBe(0);
       expect(mockPrisma.document.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('findAll (org-scoped)', () => {
+    it('should query with organizationId filter', async () => {
+      mockPrisma.document.findMany.mockResolvedValue([]);
+
+      await service.findAll(ORG_ID);
+
+      expect(mockPrisma.document.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { organizationId: ORG_ID },
+        }),
+      );
+    });
+  });
+
+  describe('findOne (org-scoped)', () => {
+    it('should throw NotFoundException if document belongs to a different org', async () => {
+      mockPrisma.document.findUnique.mockResolvedValue({
+        id: 'doc-1',
+        organizationId: 'other-org',
+      });
+
+      await expect(service.findOne('doc-1', ORG_ID)).rejects.toThrow(
+        'Document with id doc-1 not found',
+      );
+    });
+
+    it('should return document when org matches', async () => {
+      const doc = { id: 'doc-1', organizationId: ORG_ID };
+      mockPrisma.document.findUnique.mockResolvedValue(doc);
+
+      const result = await service.findOne('doc-1', ORG_ID);
+
+      expect(result).toEqual(doc);
     });
   });
 });

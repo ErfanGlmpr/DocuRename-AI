@@ -85,6 +85,7 @@ describe('AiEvaluationService', () => {
         id: 'doc-1',
         originalName: 'test.pdf',
         redactedText: 'safe-text',
+        organizationId: 'org-1',
       });
       mockPrisma.aiEvaluationRun.create.mockResolvedValue({ id: 'run-1' });
       mockPrisma.aiEvaluationRun.update.mockResolvedValue({
@@ -92,7 +93,7 @@ describe('AiEvaluationService', () => {
         status: 'COMPLETED',
       });
 
-      await service.runEvaluation('doc-1', 'openai');
+      await service.runEvaluation('doc-1', 'openai', 'org-1');
 
       expect(mockPromptMinimization.minimize).toHaveBeenCalledWith('safe-text');
       expect(mockAiProvider.extractDocumentMetadata).toHaveBeenCalledWith(
@@ -110,11 +111,12 @@ describe('AiEvaluationService', () => {
         id: 'doc-1',
         originalName: 'test.pdf',
         redactedText: null, // missing!
+        organizationId: 'org-1',
       });
 
-      await expect(service.runEvaluation('doc-1', 'openai')).rejects.toThrow(
-        /no redacted text available/,
-      );
+      await expect(
+        service.runEvaluation('doc-1', 'openai', 'org-1'),
+      ).rejects.toThrow(/no redacted text available/);
     });
 
     it('should save failed runs without throwing', async () => {
@@ -122,6 +124,7 @@ describe('AiEvaluationService', () => {
         id: 'doc-1',
         originalName: 'test.pdf',
         redactedText: 'safe-text',
+        organizationId: 'org-1',
       });
       mockPrisma.aiEvaluationRun.create.mockResolvedValue({ id: 'run-1' });
 
@@ -129,7 +132,7 @@ describe('AiEvaluationService', () => {
         new Error('Cloud error'),
       );
 
-      await service.runEvaluation('doc-1', 'openai');
+      await service.runEvaluation('doc-1', 'openai', 'org-1');
 
       expect(mockPrisma.aiEvaluationRun.update).toHaveBeenCalledWith(
         expect.objectContaining({

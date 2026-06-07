@@ -1,16 +1,28 @@
 import {
   Controller,
   Post,
+  UseGuards,
   UseInterceptors,
   UploadedFiles,
   BadRequestException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiConsumes,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { UploadsService } from './uploads.service';
 import { ConfigService } from '@nestjs/config';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
 
 @ApiTags('documents')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('documents/upload')
 export class UploadsController {
   constructor(
@@ -37,6 +49,7 @@ export class UploadsController {
     },
   })
   async uploadFiles(
+    @CurrentUser() currentUser: AuthenticatedUser,
     @UploadedFiles()
     files: Express.Multer.File[],
   ) {
@@ -57,6 +70,6 @@ export class UploadsController {
       );
     }
 
-    return this.uploadsService.processUploads(validFiles);
+    return this.uploadsService.processUploads(validFiles, currentUser);
   }
 }

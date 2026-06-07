@@ -20,6 +20,7 @@ export type DocumentEventType =
 
 export interface DocumentEvent {
   documentId: string;
+  organizationId?: string;
   status: DocumentEventType;
   timestamp: string;
   /** Optional non-sensitive metadata attached to the event */
@@ -41,6 +42,17 @@ export class DocumentEventsService implements OnModuleDestroy {
   /** Emit an event for a document. Called by the processor and queue services. */
   emit(event: DocumentEvent): void {
     this.global$.next(event);
+  }
+
+  /**
+   * Observable for ALL document events for a specific organization.
+   * Filters the global stream by organizationId on each event.
+   */
+  streamAllForOrg(organizationId: string): Observable<{ data: DocumentEvent }> {
+    return this.global$.pipe(
+      filter((event) => event.organizationId === organizationId),
+      map((event) => ({ data: event })),
+    );
   }
 
   /**
@@ -66,11 +78,13 @@ export class DocumentEventsService implements OnModuleDestroy {
     documentId: string,
     status: DocumentEventType,
     meta?: DocumentEvent['meta'],
+    organizationId?: string,
   ): DocumentEvent {
     return {
       documentId,
       status,
       timestamp: new Date().toISOString(),
+      ...(organizationId ? { organizationId } : {}),
       ...(meta ? { meta } : {}),
     };
   }

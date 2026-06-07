@@ -1,6 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DocumentsController } from './documents.controller';
 import { DocumentsService } from './documents.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+
+const MOCK_USER = {
+  id: 'user-1',
+  email: 'test@example.com',
+  organizationId: 'org-1',
+  role: 'OWNER' as const,
+};
 
 describe('DocumentsController (Unit - Stuck Detection)', () => {
   let controller: DocumentsController;
@@ -23,7 +31,10 @@ describe('DocumentsController (Unit - Stuck Detection)', () => {
       providers: [
         { provide: DocumentsService, useValue: mockDocumentsService },
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<DocumentsController>(DocumentsController);
   });
@@ -69,6 +80,16 @@ describe('DocumentsController (Unit - Stuck Detection)', () => {
 
       expect(result).toEqual(mockResult);
       expect(mockDocumentsService.reconcileStuck).toHaveBeenCalled();
+    });
+  });
+
+  describe('GET /', () => {
+    it('should call findAll with the user organizationId', async () => {
+      mockDocumentsService.findAll.mockResolvedValue([]);
+
+      await controller.findAll(MOCK_USER);
+
+      expect(mockDocumentsService.findAll).toHaveBeenCalledWith('org-1');
     });
   });
 });

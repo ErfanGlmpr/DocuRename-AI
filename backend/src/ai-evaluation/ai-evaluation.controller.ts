@@ -1,10 +1,21 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
+import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AiEvaluationService } from './ai-evaluation.service';
 import { RunAiEvaluationDto } from './dto/run-ai-evaluation.dto';
 import { RunBatchAiEvaluationDto } from './dto/run-batch-ai-evaluation.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
 
 @ApiTags('ai-evaluations')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('documents')
 export class AiEvaluationController {
   constructor(private readonly evaluationService: AiEvaluationService) {}
@@ -20,8 +31,14 @@ export class AiEvaluationController {
   async runEvaluation(
     @Param('id') id: string,
     @Body() dto: RunAiEvaluationDto,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.evaluationService.runEvaluation(id, dto.provider, dto.model);
+    return this.evaluationService.runEvaluation(
+      id,
+      dto.provider,
+      user.organizationId,
+      dto.model,
+    );
   }
 
   @Get(':id/ai-evaluations')
@@ -30,8 +47,11 @@ export class AiEvaluationController {
     description: 'Returns all runs ordered by createdAt descending.',
   })
   @ApiParam({ name: 'id', description: 'Document ID' })
-  async listEvaluations(@Param('id') id: string) {
-    return this.evaluationService.listEvaluations(id);
+  async listEvaluations(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.evaluationService.listEvaluations(id, user.organizationId);
   }
 
   @Post(':id/ai-evaluations/batch')
@@ -45,7 +65,8 @@ export class AiEvaluationController {
   async runBatch(
     @Param('id') id: string,
     @Body() dto: RunBatchAiEvaluationDto,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.evaluationService.runBatch(id, dto.runs);
+    return this.evaluationService.runBatch(id, dto.runs, user.organizationId);
   }
 }

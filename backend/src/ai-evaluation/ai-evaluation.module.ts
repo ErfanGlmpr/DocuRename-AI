@@ -6,6 +6,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { AiModule } from '../ai/ai.module';
 import { ProcessingModule } from '../processing/processing.module';
 import { AuditModule } from '../audit/audit.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AuditModule } from '../audit/audit.module';
     AiModule,
     ProcessingModule,
     AuditModule,
+    AuthModule,
   ],
   controllers: [AiEvaluationController],
   providers: [AiEvaluationService],

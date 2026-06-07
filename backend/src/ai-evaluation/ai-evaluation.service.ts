@@ -43,6 +43,7 @@ export class AiEvaluationService {
   async runEvaluation(
     documentId: string,
     provider: string,
+    organizationId: string,
     modelOverride?: string,
   ) {
     if (!this.aiFactory.isValidProvider(provider)) {
@@ -54,7 +55,7 @@ export class AiEvaluationService {
     const document = await this.prisma.document.findUnique({
       where: { id: documentId },
     });
-    if (!document) {
+    if (!document || document.organizationId !== organizationId) {
       throw new NotFoundException(`Document ${documentId} not found`);
     }
 
@@ -200,6 +201,7 @@ export class AiEvaluationService {
   async runBatch(
     documentId: string,
     runs: { provider: string; model?: string }[],
+    organizationId: string,
   ): Promise<EvaluationRunSummary> {
     let completed = 0;
     let failed = 0;
@@ -215,6 +217,7 @@ export class AiEvaluationService {
         const result = await this.runEvaluation(
           documentId,
           run.provider,
+          organizationId,
           run.model,
         );
         if (result) {
@@ -244,11 +247,11 @@ export class AiEvaluationService {
   /**
    * List all evaluation runs for a document, newest first.
    */
-  async listEvaluations(documentId: string) {
+  async listEvaluations(documentId: string, organizationId: string) {
     const document = await this.prisma.document.findUnique({
       where: { id: documentId },
     });
-    if (!document) {
+    if (!document || document.organizationId !== organizationId) {
       throw new NotFoundException(`Document ${documentId} not found`);
     }
 

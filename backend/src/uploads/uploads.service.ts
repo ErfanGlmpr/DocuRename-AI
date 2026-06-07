@@ -6,6 +6,7 @@ import { Queue } from 'bullmq';
 import { DocumentStatus } from '@prisma/client';
 import * as crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
+import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
 
 @Injectable()
 export class UploadsService {
@@ -17,7 +18,7 @@ export class UploadsService {
     @InjectQueue('document-processing') private documentQueue: Queue,
   ) {}
 
-  async processUploads(files: Express.Multer.File[]) {
+  async processUploads(files: Express.Multer.File[], owner: AuthenticatedUser) {
     if (!files || files.length === 0) {
       throw new BadRequestException('No files uploaded');
     }
@@ -40,7 +41,7 @@ export class UploadsService {
       // Upload to MinIO
       await this.storage.uploadBuffer(storageKey, file.buffer, file.mimetype);
 
-      // Create record (userId/organizationId populated in Ticket 2.3 when auth is enforced)
+      // Create document record scoped to the authenticated user's organization
       const document = await this.prisma.document.create({
         data: {
           id: documentId,
@@ -50,8 +51,8 @@ export class UploadsService {
           sha256: hash,
           storageKey,
           status: DocumentStatus.QUEUED,
-          userId: null,
-          organizationId: null,
+          userId: owner.id,
+          organizationId: owner.organizationId,
         },
       });
 
@@ -59,6 +60,10 @@ export class UploadsService {
       await this.documentQueue.add('process-pdf', {
         documentId: document.id,
       });
+
+      this.logger.log(
+        `Document ${document.id} uploaded by user ${owner.id} (org: ${owner.organizationId})`,
+      );
 
       createdDocuments.push({
         id: document.id,
