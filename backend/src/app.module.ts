@@ -19,6 +19,7 @@ import { ObservabilityModule } from './observability/observability.module';
 import { HealthModule } from './health/health.module';
 // Phase 5
 import { AuthModule } from './auth/auth.module';
+import { OrganizationsModule } from './organizations/organizations.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { AuthModule } from './auth/auth.module';
     HealthModule,
     // Phase 5
     AuthModule,
+    OrganizationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

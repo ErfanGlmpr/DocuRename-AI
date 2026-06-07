@@ -18,6 +18,7 @@ import type { AuthResponse, TokenPair, UserContext } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { SwitchOrganizationDto } from './dto/switch-organization.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './current-user.decorator';
 import type { AuthenticatedUser } from './types/authenticated-user.type';
@@ -83,5 +84,22 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getMe(@CurrentUser() user: AuthenticatedUser): Promise<UserContext> {
     return this.authService.getMe(user.id);
+  }
+
+  @Post('switch-organization')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Switch active organization context' })
+  @ApiResponse({ status: 200, description: 'New token pair' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden: Not a member of the target organization',
+  })
+  async switchOrganization(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: SwitchOrganizationDto,
+  ): Promise<AuthResponse> {
+    return this.authService.switchOrganization(user.id, dto.organizationId);
   }
 }

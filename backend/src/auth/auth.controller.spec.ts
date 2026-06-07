@@ -11,6 +11,7 @@ describe('AuthController', () => {
     refresh: jest.fn(),
     logout: jest.fn(),
     getMe: jest.fn(),
+    switchOrganization: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -97,6 +98,40 @@ describe('AuthController', () => {
 
       expect(mockAuthService.logout).toHaveBeenCalledWith('user-1');
       expect(result).toEqual({ message: 'Logged out successfully' });
+    });
+  });
+
+  describe('POST /auth/switch-organization', () => {
+    it('should delegate to authService.switchOrganization', async () => {
+      const currentUser = {
+        id: 'user-1',
+        email: 'test@example.com',
+        organizationId: 'org-1',
+        role: 'OWNER' as const,
+      };
+      const dto = { organizationId: 'org-2' };
+      const expectedResult = {
+        accessToken: 'new-tok',
+        refreshToken: 'new-ref',
+        user: {
+          id: 'user-1',
+          email: 'test@example.com',
+          name: 'Test',
+          organizationId: 'org-2',
+          organizationName: 'Org 2',
+          role: 'MEMBER' as const,
+        },
+      };
+
+      mockAuthService.switchOrganization.mockResolvedValue(expectedResult);
+
+      const result = await controller.switchOrganization(currentUser, dto);
+
+      expect(result).toEqual(expectedResult);
+      expect(mockAuthService.switchOrganization).toHaveBeenCalledWith(
+        'user-1',
+        'org-2',
+      );
     });
   });
 

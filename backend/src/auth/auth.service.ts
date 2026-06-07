@@ -193,6 +193,19 @@ export class AuthService {
   }
 
   /**
+   * Switch Organization: validate user membership in target organization and issue a new token pair.
+   */
+  async switchOrganization(
+    userId: string,
+    targetOrganizationId: string,
+  ): Promise<AuthResponse> {
+    // This will throw ForbiddenException if the user is not a member of targetOrganizationId
+    await this.assertOrganizationMember(userId, targetOrganizationId);
+
+    return this.buildAuthResponseForUser(userId, targetOrganizationId);
+  }
+
+  /**
    * Logout: clear stored refresh token hash.
    */
   async logout(userId: string): Promise<void> {
@@ -311,15 +324,22 @@ export class AuthService {
 
   private async buildAuthResponseForUser(
     userId: string,
+    targetOrganizationId?: string,
   ): Promise<AuthResponse> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
-        memberships: {
-          include: { organization: true },
-          orderBy: { createdAt: 'asc' },
-          take: 1,
-        },
+        memberships: targetOrganizationId
+          ? {
+              where: { organizationId: targetOrganizationId },
+              include: { organization: true },
+              take: 1,
+            }
+          : {
+              include: { organization: true },
+              orderBy: { createdAt: 'asc' },
+              take: 1,
+            },
       },
     });
 
