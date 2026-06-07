@@ -6,6 +6,8 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { LocalStrategy } from './local.strategy';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { OrganizationAccessGuard } from './guards/organization-access.guard';
 import { PrismaModule } from '../prisma/prisma.module';
 import type { StringValue } from 'ms';
 
@@ -26,8 +28,14 @@ import type { StringValue } from 'ms';
       inject: [ConfigService],
     }),
   ],
-  providers: [AuthService, JwtStrategy, LocalStrategy],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    LocalStrategy,
+    JwtAuthGuard,
+    OrganizationAccessGuard,
+  ],
   controllers: [AuthController],
-  exports: [AuthService, JwtModule],
+  exports: [AuthService, JwtModule, JwtAuthGuard, OrganizationAccessGuard],
 })
 export class AuthModule {}

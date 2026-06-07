@@ -74,11 +74,17 @@ Track each task below. Check the box **only** when:
 ## Milestone 2 — Tenant Isolation and API Protection
 
 ### Ticket 2.1 — Current User Decorator and Organization Access Helpers
-- [ ] `@CurrentUser()` already created in Ticket 1.1 ✓
-- [ ] `guards/organization-access.guard.ts`
-- [ ] `assertOrganizationMember(userId, organizationId)` helper
-- [ ] `getDefaultOrganizationForUser(userId)` helper
-- [ ] `getUserMembershipContext(userId)` helper
+- [x] `@CurrentUser()` already created in Ticket 1.1 ✓
+- [x] `guards/organization-access.guard.ts` — resolves org from params > body > query > JWT, delegates to `assertOrganizationMember`
+- [x] `assertOrganizationMember(userId, organizationId)` — ForbiddenException if not a member
+- [x] `getDefaultOrganizationForUser(userId)` — returns earliest membership by createdAt
+- [x] `getUserMembershipContext(userId)` — returns all memberships as context objects
+- [x] `OrganizationAccessGuard` + `JwtAuthGuard` exported from `AuthModule`
+- [x] 6 new tests for helper methods (`auth.service.spec.ts`)
+- [x] 6 new tests for guard (`organization-access.guard.spec.ts`)
+- [x] `npm run build` — ✅ passes
+- [x] `npm run test` — ✅ 134 tests, 28 suites, all pass
+- [x] `npm run lint` — ✅ no errors
 
 ### Ticket 2.2 — Protect Existing Endpoints with JWT
 - [ ] Add `JwtAuthGuard` to `/uploads/*`
