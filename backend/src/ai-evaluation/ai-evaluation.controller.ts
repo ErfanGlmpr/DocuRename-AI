@@ -38,6 +38,7 @@ export class AiEvaluationController {
       dto.provider,
       user.organizationId,
       dto.model,
+      user.id,
     );
   }
 
@@ -67,6 +68,11 @@ export class AiEvaluationController {
     @Body() dto: RunBatchAiEvaluationDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.evaluationService.runBatch(id, dto.runs, user.organizationId);
+    return this.evaluationService.runBatch(
+      id,
+      dto.runs,
+      user.organizationId,
+      user.id,
+    );
   }
 }

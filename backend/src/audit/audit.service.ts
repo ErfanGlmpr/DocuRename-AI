@@ -6,6 +6,8 @@ export interface AuditLogEntry {
   documentId?: string;
   action: string;
   metadata?: Record<string, unknown>;
+  actorUserId?: string;
+  organizationId?: string;
 }
 
 @Injectable()
@@ -24,6 +26,8 @@ export class AuditService {
           documentId: entry.documentId,
           action: entry.action,
           metadata: (sanitizedMetadata || {}) as Prisma.InputJsonValue,
+          actorUserId: entry.actorUserId,
+          organizationId: entry.organizationId,
         },
       });
 

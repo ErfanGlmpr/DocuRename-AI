@@ -69,6 +69,14 @@ Track each task below. Check the box **only** when:
 - [x] `npm run test` — ✅ 122 tests, 27 suites, all pass
 - [x] `npm run lint` — ✅ no errors
 
+### Ticket 1.4 — Organization Management Endpoints
+- [ ] `POST /organizations` — Create organization endpoint
+- [ ] `POST /organizations/:id/members` — Add member endpoint
+- [ ] `POST /auth/switch-organization` — Switch active organization and reissue JWT
+- [ ] `npm run build` — passes
+- [ ] `npm run test` — tests pass
+- [ ] `npm run lint` — no errors
+
 ---
 
 ## Milestone 2 — Tenant Isolation and API Protection
@@ -117,9 +125,9 @@ Track each task below. Check the box **only** when:
 - [x] `npm run lint` — ✅ no errors
 
 ### Ticket 2.4 — Scope Audit Logs and AI Evaluation Runs
-- [ ] Write `actorUserId` + `organizationId` to `AuditLog` when user context is available
-- [ ] Write `actorUserId` + `organizationId` to `AiEvaluationRun`
-- [ ] Build + test + lint pass
+- [x] Write `actorUserId` + `organizationId` to `AuditLog` when user context is available
+- [x] Write `actorUserId` + `organizationId` to `AiEvaluationRun`
+- [x] Build + test + lint pass
 
 ---
 

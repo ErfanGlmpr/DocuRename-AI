@@ -239,6 +239,32 @@ PASSWORD_MIN_LENGTH=10
 
 ---
 
+## Ticket 1.4 — Organization Management Endpoints
+
+**Goal:** Allow users to create, join, and switch active organizations.
+
+Add endpoints:
+
+```txt
+POST /organizations
+POST /organizations/:id/members
+POST /auth/switch-organization
+```
+
+**Requirements:**
+
+* `POST /organizations`: Create a new organization and assign the creator as `OWNER`.
+* `POST /organizations/:id/members`: Add a user (by email or ID) to the organization with a specified role. Requires caller to be `OWNER` or `ADMIN`.
+* `POST /auth/switch-organization`: Accepts a target `organizationId`. Validates the user is a member of that organization. Returns a new JWT `accessToken` with the new `organizationId` encoded in the payload.
+
+**Acceptance Criteria:**
+
+* User can create additional organizations.
+* User can invite/add members to organizations they manage.
+* User can switch their active context by retrieving a new JWT.
+
+---
+
 # Milestone 2 — Tenant Isolation and API Protection
 
 ## Ticket 2.1 — Add Current User Decorator and Organization Access Helpers

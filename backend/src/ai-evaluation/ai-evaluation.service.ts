@@ -45,6 +45,7 @@ export class AiEvaluationService {
     provider: string,
     organizationId: string,
     modelOverride?: string,
+    actorUserId?: string,
   ) {
     if (!this.aiFactory.isValidProvider(provider)) {
       throw new BadRequestException(
@@ -97,6 +98,8 @@ export class AiEvaluationService {
         provider,
         model: modelOverride || provider,
         status: AiEvaluationStatus.RUNNING,
+        actorUserId,
+        organizationId,
       },
     });
 
@@ -108,6 +111,8 @@ export class AiEvaluationService {
         provider,
         model: modelOverride || provider,
       },
+      actorUserId,
+      organizationId,
     });
 
     const startTime = Date.now();
@@ -157,6 +162,8 @@ export class AiEvaluationService {
           latencyMs,
           tokenUsage,
         },
+        actorUserId,
+        organizationId,
       });
 
       return updated;
@@ -183,6 +190,8 @@ export class AiEvaluationService {
           latencyMs,
           errorMessage: safeError,
         },
+        actorUserId,
+        organizationId,
       });
 
       this.logger.warn(
@@ -202,6 +211,7 @@ export class AiEvaluationService {
     documentId: string,
     runs: { provider: string; model?: string }[],
     organizationId: string,
+    actorUserId?: string,
   ): Promise<EvaluationRunSummary> {
     let completed = 0;
     let failed = 0;
@@ -219,6 +229,7 @@ export class AiEvaluationService {
           run.provider,
           organizationId,
           run.model,
+          actorUserId,
         );
         if (result) {
           runResults.push({

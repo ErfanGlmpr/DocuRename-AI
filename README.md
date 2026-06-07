@@ -242,15 +242,24 @@ docker compose build ocr-sidecar
 
 ---
 
+## Phase 5: SaaS Foundation & Multi-Tenancy (New!)
+
+Phase 5 introduces a full SaaS foundation:
+- **Authentication**: JWT-based auth (Register, Login, Refresh, Logout).
+- **Tenant Isolation**: Documents, AI evaluation runs, and audit logs are strictly scoped to organizations.
+- **Role-Based Access Control**: Organization `OWNER`, `ADMIN`, and `MEMBER` roles.
+- **API Protection**: JWT guards on all sensitive endpoints.
+
+---
+
 ## Known Limitations
-- **No frontend UI** — API only.
+- **No frontend UI** — API only (Frontend planned for late Phase 5 / Phase 6).
 - **OCR sidecar first-build time**: The Docker image downloads Tesseract language packs on first build (~200 MB).
 - **ClamAV cold start**: First startup downloads virus definitions (~300 MB). Subsequent restarts are fast.
 - **SSE**: Uses in-process RxJS Subject. If running multiple API instances behind a load balancer, clients should connect to the same instance (sticky sessions) or use Redis pub/sub (future work).
 
 ## Future Roadmap
 - Frontend React UI
-- Authentication & multi-tenancy
 - Semantic search with vector embeddings
 - Batch processing API
 - Webhook callbacks for document events
