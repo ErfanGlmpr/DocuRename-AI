@@ -4,7 +4,6 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFiles,
-  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -20,6 +19,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
+import { PdfUploadValidationPipe } from './pipes/pdf-upload-validation.pipe';
 
 @ApiTags('documents')
 @ApiBearerAuth()
@@ -57,26 +57,9 @@ export class UploadsController {
   })
   async uploadFiles(
     @CurrentUser() currentUser: AuthenticatedUser,
-    @UploadedFiles()
+    @UploadedFiles(PdfUploadValidationPipe)
     files: Express.Multer.File[],
   ) {
-    if (!files || files.length === 0) {
-      throw new BadRequestException('At least one file must be uploaded');
-    }
-
-    const maxSizeMB = parseInt(
-      this.configService.get('MAX_UPLOAD_SIZE_MB') || '25',
-      10,
-    );
-    const maxSizeBytes = maxSizeMB * 1024 * 1024;
-
-    const validFiles = files.filter((f) => f.size <= maxSizeBytes);
-    if (validFiles.length === 0) {
-      throw new BadRequestException(
-        `All files exceed maximum size of ${maxSizeMB}MB`,
-      );
-    }
-
-    return this.uploadsService.processUploads(validFiles, currentUser);
+    return this.uploadsService.processUploads(files, currentUser);
   }
 }

@@ -167,17 +167,17 @@ Track each task below. Check the box **only** when:
 ## Milestone 4 — Upload Validation Hardening
 
 ### Ticket 4.1 — Strict Multi-File Upload Validation
-- [ ] Add env: `MAX_FILES_PER_UPLOAD`, `MAX_TOTAL_UPLOAD_SIZE_MB`
-- [ ] Validate MIME type = `application/pdf`
-- [ ] Validate extension = `.pdf`
-- [ ] Validate magic bytes = `%PDF-`
-- [ ] Validate non-empty file
-- [ ] Validate per-file size within limit
-- [ ] Validate total upload size within limit
-- [ ] Validate file count within limit
-- [ ] Reject entire batch if any file is invalid
-- [ ] Return per-file validation errors
-- [ ] Build + test + lint pass
+- [x] Add env: `MAX_FILES_PER_UPLOAD`, `MAX_TOTAL_UPLOAD_SIZE_MB`
+- [x] Validate MIME type = `application/pdf`
+- [x] Validate extension = `.pdf`
+- [x] Validate magic bytes = `%PDF-`
+- [x] Validate non-empty file
+- [x] Validate per-file size within limit
+- [x] Validate total upload size within limit
+- [x] Validate file count within limit
+- [x] Reject entire batch if any file is invalid
+- [x] Return per-file validation errors
+- [x] Build + test + lint pass
 
 ---
 
