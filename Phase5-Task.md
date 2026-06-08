@@ -191,10 +191,10 @@ Track each task below. Check the box **only** when:
 - [x] Build + lint pass (frontend)
 
 ### Ticket 5.2 — Frontend API Client and Auth Storage
-- [ ] `frontend/lib/api-client.ts` — attach Bearer token, handle 401
-- [ ] `frontend/lib/auth.ts` — token storage (localStorage for MVP)
-- [ ] `frontend/lib/types.ts` — shared backend response types
-- [ ] Build + lint pass (frontend)
+- [x] `frontend/lib/api-client.ts` — attach Bearer token, handle 401
+- [x] `frontend/lib/auth.ts` — token storage (localStorage for MVP)
+- [x] `frontend/lib/types.ts` — shared backend response types
+- [x] Build + lint pass (frontend)
 
 ### Ticket 5.3 — Register Page
 - [ ] `/register` route with email, name, password
