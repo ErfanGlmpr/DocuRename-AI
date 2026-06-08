@@ -6,6 +6,7 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { AiEvaluationService } from './ai-evaluation.service';
 import { RunAiEvaluationDto } from './dto/run-ai-evaluation.dto';
 import { RunBatchAiEvaluationDto } from './dto/run-batch-ai-evaluation.dto';
@@ -21,6 +22,15 @@ export class AiEvaluationController {
   constructor(private readonly evaluationService: AiEvaluationService) {}
 
   @Post(':id/ai-evaluations')
+  @Throttle({
+    default: {
+      limit: parseInt(
+        process.env.AI_EVALUATION_RATE_LIMIT_MAX_REQUESTS || '20',
+        10,
+      ),
+      ttl: parseInt(process.env.RATE_LIMIT_TTL_SECONDS || '60', 10) * 1000,
+    },
+  })
   @ApiOperation({
     summary: 'Run a single AI provider evaluation against an existing document',
     description:
@@ -56,6 +66,15 @@ export class AiEvaluationController {
   }
 
   @Post(':id/ai-evaluations/batch')
+  @Throttle({
+    default: {
+      limit: parseInt(
+        process.env.AI_EVALUATION_RATE_LIMIT_MAX_REQUESTS || '20',
+        10,
+      ),
+      ttl: parseInt(process.env.RATE_LIMIT_TTL_SECONDS || '60', 10) * 1000,
+    },
+  })
   @ApiOperation({
     summary: 'Run multiple provider/model evaluations sequentially',
     description:

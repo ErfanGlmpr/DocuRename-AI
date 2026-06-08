@@ -13,6 +13,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import type { AuthResponse, TokenPair, UserContext } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -29,6 +30,12 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @Throttle({
+    default: {
+      limit: parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS || '10', 10),
+      ttl: parseInt(process.env.RATE_LIMIT_TTL_SECONDS || '60', 10) * 1000,
+    },
+  })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Register a new user and create a default organization',
@@ -41,6 +48,12 @@ export class AuthController {
   }
 
   @Post('login')
+  @Throttle({
+    default: {
+      limit: parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS || '10', 10),
+      ttl: parseInt(process.env.RATE_LIMIT_TTL_SECONDS || '60', 10) * 1000,
+    },
+  })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiResponse({ status: 200, description: 'Login successful' })

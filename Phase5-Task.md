@@ -143,12 +143,12 @@ Track each task below. Check the box **only** when:
 - [x] Build + test + lint pass
 
 ### Ticket 3.2 — Rate Limiting
-- [ ] Install `@nestjs/throttler`
-- [ ] Add global throttle config
-- [ ] Apply stricter throttle to auth endpoints
-- [ ] Apply separate throttle to uploads and AI evaluation
-- [ ] Add rate limit env vars to `.env.example`
-- [ ] Build + test + lint pass
+- [x] Install `@nestjs/throttler`
+- [x] Add global throttle config
+- [x] Apply stricter throttle to auth endpoints
+- [x] Apply separate throttle to uploads and AI evaluation
+- [x] Add rate limit env vars to `.env.example`
+- [x] Build + test + lint pass
 
 ### Ticket 3.3 — Secure Metrics and Health Details
 - [ ] `METRICS_PUBLIC` env flag — require token if false
