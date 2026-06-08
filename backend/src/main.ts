@@ -1,9 +1,31 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import helmet from 'helmet';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.use(helmet());
+
+  const corsOrigin = process.env.CORS_ORIGIN;
+  if (corsOrigin) {
+    const origins = corsOrigin.split(',').map((o) => o.trim());
+    app.enableCors({
+      origin: origins.length === 1 ? origins[0] : origins,
+    });
+  } else {
+    app.enableCors();
+  }
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   // SSE requires keep-alive connections to stay open.
   // Set a generous keepAliveTimeout so Node's HTTP server doesn't

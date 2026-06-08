@@ -135,12 +135,12 @@ Track each task below. Check the box **only** when:
 ## Milestone 3 — API Security Hardening
 
 ### Ticket 3.1 — Helmet, CORS Allowlist, Global ValidationPipe
-- [ ] Install `helmet`
-- [ ] Add `app.use(helmet())` in `main.ts`
-- [ ] Add strict CORS config from `CORS_ORIGIN` env
-- [ ] Add global `ValidationPipe` (whitelist, forbidNonWhitelisted, transform)
-- [ ] Add `CORS_ORIGIN` to `.env.example`
-- [ ] Build + test + lint pass
+- [x] Install `helmet`
+- [x] Add `app.use(helmet())` in `main.ts`
+- [x] Add strict CORS config from `CORS_ORIGIN` env
+- [x] Add global `ValidationPipe` (whitelist, forbidNonWhitelisted, transform)
+- [x] Add `CORS_ORIGIN` to `.env.example`
+- [x] Build + test + lint pass
 
 ### Ticket 3.2 — Rate Limiting
 - [ ] Install `@nestjs/throttler`
