@@ -135,32 +135,32 @@ Track each task below. Check the box **only** when:
 ## Milestone 3 — API Security Hardening
 
 ### Ticket 3.1 — Helmet, CORS Allowlist, Global ValidationPipe
-- [ ] Install `helmet`
-- [ ] Add `app.use(helmet())` in `main.ts`
-- [ ] Add strict CORS config from `CORS_ORIGIN` env
-- [ ] Add global `ValidationPipe` (whitelist, forbidNonWhitelisted, transform)
-- [ ] Add `CORS_ORIGIN` to `.env.example`
-- [ ] Build + test + lint pass
+- [x] Install `helmet`
+- [x] Add `app.use(helmet())` in `main.ts`
+- [x] Add strict CORS config from `CORS_ORIGIN` env
+- [x] Add global `ValidationPipe` (whitelist, forbidNonWhitelisted, transform)
+- [x] Add `CORS_ORIGIN` to `.env.example`
+- [x] Build + test + lint pass
 
 ### Ticket 3.2 — Rate Limiting
-- [ ] Install `@nestjs/throttler`
-- [ ] Add global throttle config
-- [ ] Apply stricter throttle to auth endpoints
-- [ ] Apply separate throttle to uploads and AI evaluation
-- [ ] Add rate limit env vars to `.env.example`
-- [ ] Build + test + lint pass
+- [x] Install `@nestjs/throttler`
+- [x] Add global throttle config
+- [x] Apply stricter throttle to auth endpoints
+- [x] Apply separate throttle to uploads and AI evaluation
+- [x] Add rate limit env vars to `.env.example`
+- [x] Build + test + lint pass
 
 ### Ticket 3.3 — Secure Metrics and Health Details
-- [ ] `METRICS_PUBLIC` env flag — require token if false
-- [ ] `X-Metrics-Token` header support
-- [ ] `HEALTH_DETAILED_PUBLIC` env flag
-- [ ] Build + test + lint pass
+- [x] `METRICS_PUBLIC` env flag — require token if false
+- [x] `X-Metrics-Token` header support
+- [x] `HEALTH_DETAILED_PUBLIC` env flag
+- [x] Build + test + lint pass
 
 ### Ticket 3.4 — Correlation ID and Normalized Errors
-- [ ] Correlation ID middleware (accept `X-Request-Id` or generate UUID)
-- [ ] Include correlation ID in logs and error responses
-- [ ] Normalize error shape: `{ message, error, statusCode, requestId }`
-- [ ] Build + test + lint pass
+- [x] Correlation ID middleware (accept `X-Request-Id` or generate UUID)
+- [x] Include correlation ID in logs and error responses
+- [x] Normalize error shape: `{ message, error, statusCode, requestId }`
+- [x] Build + test + lint pass
 
 ---
 

@@ -509,6 +509,41 @@
               ]
             }
           }
+        },
+        {
+          "name": "Get Stuck Documents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/documents/stuck",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "documents",
+                "stuck"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reconcile Stuck Documents",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/documents/stuck/reconcile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "documents",
+                "stuck",
+                "reconcile"
+              ]
+            }
+          }
         }
       ]
     },
@@ -706,7 +741,14 @@
           "name": "Get Prometheus Metrics",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "X-Metrics-Token",
+                "value": "{{metrics_token}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/metrics",
               "host": [
@@ -714,41 +756,6 @@
               ],
               "path": [
                 "metrics"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Stuck Documents",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/documents/stuck",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "documents",
-                "stuck"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Reconcile Stuck Documents",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/documents/stuck/reconcile",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "documents",
-                "stuck",
-                "reconcile"
               ]
             }
           }
@@ -780,6 +787,11 @@
     {
       "key": "organization_id",
       "value": "",
+      "type": "string"
+    },
+    {
+      "key": "metrics_token",
+      "value": "your-metrics-token-here",
       "type": "string"
     }
   ]

@@ -20,7 +20,7 @@ Before starting any ticket, follow these rules:
 * Add/update tests where practical.
 * Update `.env.example` files when adding environment variables.
 * Keep the repository suitable as a public portfolio project.
-* Update/edit the postman collection if needed after each feature/ticket implementation.
+* Analyze the postman collection `PDF-Renamer-API.postman_collection.json` and update/edit it if needed after each feature/ticket implementation.
 * Once a ticket is complete, run `npm run build`, `npm run test` and `npm run lint` in the backend and frontend directories respectively and check that everything is working.
 * Do not proceed until all tests pass and build succeeds. and linting issues are resolved.
 * Update README.md after each feature/ticket implementation with new features documented and necessary steps for setup and running the project.
