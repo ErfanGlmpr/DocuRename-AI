@@ -228,11 +228,11 @@ Track each task below. Check the box **only** when:
 - [x] Build + lint pass (frontend)
 
 ### Ticket 6.2 — Documents List and Upload Page
-- [ ] `/documents` with drag-and-drop PDF upload
-- [ ] Document table with status, filename, category, confidence, quality
-- [ ] Retry/cancel actions
-- [ ] SSE live updates or polling fallback
-- [ ] Build + lint pass (frontend)
+- [x] `/documents` with drag-and-drop PDF upload
+- [x] Document table with status, filename, category, confidence, quality
+- [x] Retry/cancel actions
+- [x] SSE live updates or polling fallback
+- [x] Build + lint pass (frontend)
 
 ### Ticket 6.3 — Document Detail Page
 - [ ] `/documents/:id` detail view

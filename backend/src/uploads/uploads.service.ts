@@ -59,6 +59,7 @@ export class UploadsService {
       // Enqueue processing
       await this.documentQueue.add('process-pdf', {
         documentId: document.id,
+        organizationId: document.organizationId,
       });
 
       this.logger.log(

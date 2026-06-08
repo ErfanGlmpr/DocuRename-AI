@@ -29,6 +29,7 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
     ConfigModule.forRoot({ isGlobal: true }),
     CancellationModule,
     StorageModule,
+    EventsModule,
     PrismaModule,
     DocumentsModule,
     UploadsModule,
@@ -39,7 +40,6 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
     AuditModule,
     AiEvaluationModule,
     // Phase 4
-    EventsModule,
     ObservabilityModule,
     HealthModule,
     // Phase 5

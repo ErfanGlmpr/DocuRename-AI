@@ -72,6 +72,9 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
               <Link href="/dashboard" className={`text-sm font-medium transition-colors hover:text-black dark:hover:text-white ${pathname === '/dashboard' ? 'text-black dark:text-white font-semibold' : 'text-zinc-500'}`}>
                 Dashboard
               </Link>
+              <Link href="/documents" className={`text-sm font-medium transition-colors hover:text-black dark:hover:text-white ${pathname === '/documents' ? 'text-black dark:text-white font-semibold' : 'text-zinc-500'}`}>
+                Documents
+              </Link>
               <Link href="/settings" className={`text-sm font-medium transition-colors hover:text-black dark:hover:text-white ${pathname === '/settings' ? 'text-black dark:text-white font-semibold' : 'text-zinc-500'}`}>
                 Settings
               </Link>
