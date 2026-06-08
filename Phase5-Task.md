@@ -197,11 +197,11 @@ Track each task below. Check the box **only** when:
 - [x] Build + lint pass (frontend)
 
 ### Ticket 5.3 — Register Page
-- [ ] `/register` route with email, name, password
-- [ ] Zod + React Hook Form validation
-- [ ] Calls `POST /auth/register`
-- [ ] Redirects to `/dashboard` on success
-- [ ] Build + lint pass (frontend)
+- [x] `/register` route with email, name, password
+- [x] Zod + React Hook Form validation
+- [x] Calls `POST /auth/register`
+- [x] Redirects to `/dashboard` on success
+- [x] Build + lint pass (frontend)
 
 ### Ticket 5.4 — Login Page
 - [ ] `/login` route with email, password
