@@ -184,11 +184,11 @@ Track each task below. Check the box **only** when:
 ## Milestone 5 — Frontend Foundation
 
 ### Ticket 5.1 — Create Next.js Frontend App
-- [ ] Scaffold Next.js with TypeScript, Tailwind CSS
-- [ ] Add shadcn/ui, TanStack Query, React Hook Form, Zod
-- [ ] Configure `NEXT_PUBLIC_API_BASE_URL`
-- [ ] Frontend starts locally
-- [ ] Build + lint pass (frontend)
+- [x] Scaffold Next.js with TypeScript, Tailwind CSS
+- [x] Add shadcn/ui, TanStack Query, React Hook Form, Zod
+- [x] Configure `NEXT_PUBLIC_API_BASE_URL`
+- [x] Frontend starts locally
+- [x] Build + lint pass (frontend)
 
 ### Ticket 5.2 — Frontend API Client and Auth Storage
 - [ ] `frontend/lib/api-client.ts` — attach Bearer token, handle 401
