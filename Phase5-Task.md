@@ -184,38 +184,38 @@ Track each task below. Check the box **only** when:
 ## Milestone 5 — Frontend Foundation
 
 ### Ticket 5.1 — Create Next.js Frontend App
-- [ ] Scaffold Next.js with TypeScript, Tailwind CSS
-- [ ] Add shadcn/ui, TanStack Query, React Hook Form, Zod
-- [ ] Configure `NEXT_PUBLIC_API_BASE_URL`
-- [ ] Frontend starts locally
-- [ ] Build + lint pass (frontend)
+- [x] Scaffold Next.js with TypeScript, Tailwind CSS
+- [x] Add shadcn/ui, TanStack Query, React Hook Form, Zod
+- [x] Configure `NEXT_PUBLIC_API_BASE_URL`
+- [x] Frontend starts locally
+- [x] Build + lint pass (frontend)
 
 ### Ticket 5.2 — Frontend API Client and Auth Storage
-- [ ] `frontend/lib/api-client.ts` — attach Bearer token, handle 401
-- [ ] `frontend/lib/auth.ts` — token storage (localStorage for MVP)
-- [ ] `frontend/lib/types.ts` — shared backend response types
-- [ ] Build + lint pass (frontend)
+- [x] `frontend/lib/api-client.ts` — attach Bearer token, handle 401
+- [x] `frontend/lib/auth.ts` — token storage (localStorage for MVP)
+- [x] `frontend/lib/types.ts` — shared backend response types
+- [x] Build + lint pass (frontend)
 
 ### Ticket 5.3 — Register Page
-- [ ] `/register` route with email, name, password
-- [ ] Zod + React Hook Form validation
-- [ ] Calls `POST /auth/register`
-- [ ] Redirects to `/dashboard` on success
-- [ ] Build + lint pass (frontend)
+- [x] `/register` route with email, name, password
+- [x] Zod + React Hook Form validation
+- [x] Calls `POST /auth/register`
+- [x] Redirects to `/dashboard` on success
+- [x] Build + lint pass (frontend)
 
 ### Ticket 5.4 — Login Page
-- [ ] `/login` route with email, password
-- [ ] Calls `POST /auth/login`
-- [ ] Safe error messages
-- [ ] Redirects to `/dashboard`
-- [ ] Build + lint pass (frontend)
+- [x] `/login` route with email, password
+- [x] Calls `POST /auth/login`
+- [x] Safe error messages
+- [x] Redirects to `/dashboard`
+- [x] Build + lint pass (frontend)
 
 ### Ticket 5.5 — Authenticated Layout and Settings Page
-- [ ] Protected layout wrapping dashboard routes
-- [ ] Logout button
-- [ ] `/settings` showing user, org, role
-- [ ] Unauthenticated redirect to `/login`
-- [ ] Build + lint pass (frontend)
+- [x] Protected layout wrapping dashboard routes
+- [x] Logout button
+- [x] `/settings` showing user, org, role
+- [x] Unauthenticated redirect to `/login`
+- [x] Build + lint pass (frontend)
 
 ---
 
