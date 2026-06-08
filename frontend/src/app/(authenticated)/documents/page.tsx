@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import { getToken } from '@/lib/auth';
@@ -16,7 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { Loader2, RefreshCw, XCircle } from 'lucide-react';
 
@@ -135,7 +136,9 @@ export default function DocumentsPage() {
                 return (
                   <TableRow key={doc.id}>
                     <TableCell className="font-medium max-w-[200px] truncate" title={doc.originalName}>
-                      {doc.originalName}
+                      <Link href={`/documents/${doc.id}`} className="hover:underline text-primary">
+                        {doc.originalName}
+                      </Link>
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate" title={doc.finalName || '-'}>
                       {doc.finalName || '-'}
@@ -165,6 +168,9 @@ export default function DocumentsPage() {
                             <RefreshCw className="h-4 w-4 mr-1" /> Retry
                           </Button>
                         )}
+                        <Link href={`/documents/${doc.id}`} className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
+                          View
+                        </Link>
                         {isProcessing && (
                           <Button
                             variant="destructive"

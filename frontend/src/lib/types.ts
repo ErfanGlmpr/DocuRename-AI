@@ -34,7 +34,15 @@ export interface Document {
   generatedName: string | null;
   status: DocumentStatus;
   pageCount: number;
+  aiProvider: string | null;
+  aiModel: string | null;
+  title: string | null;
   category: string | null;
+  documentDate: string | null;
+  issuer: string | null;
+  recipient: string | null;
+  referenceNumber: string | null;
+  summary: string | null;
   confidence: number | null;
   createdAt: string;
   errorMessage: string | null;
@@ -47,4 +55,12 @@ export interface Document {
   promptTokens: number | null;
   completionTokens: number | null;
   totalTokens: number | null;
+  qualityScore: number | null;
+  ocrUsed: boolean;
+  ocrTextLength: number | null;
+  chunkCount: number | null;
+  inputTextLength: number | null;
+  processingDurationMs: number | null;
+  virusScanned: boolean;
+  virusScanResult: string | null;
 }
