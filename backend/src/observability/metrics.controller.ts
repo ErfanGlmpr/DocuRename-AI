@@ -1,7 +1,14 @@
-import { Controller, Get, Header, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Header,
+  NotFoundException,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { MetricsService } from './metrics.service';
+import { MetricsAuthGuard } from './guards/metrics-auth.guard';
 
 @ApiTags('observability')
 @Controller('metrics')
@@ -24,6 +31,7 @@ export class MetricsController {
    * a dedicated metrics port or a push-based exporter instead.
    */
   @Get()
+  @UseGuards(MetricsAuthGuard)
   @Header('Content-Type', 'text/plain; version=0.0.4; charset=utf-8')
   @ApiOperation({
     summary: 'Prometheus metrics endpoint',

@@ -151,10 +151,10 @@ Track each task below. Check the box **only** when:
 - [x] Build + test + lint pass
 
 ### Ticket 3.3 — Secure Metrics and Health Details
-- [ ] `METRICS_PUBLIC` env flag — require token if false
-- [ ] `X-Metrics-Token` header support
-- [ ] `HEALTH_DETAILED_PUBLIC` env flag
-- [ ] Build + test + lint pass
+- [x] `METRICS_PUBLIC` env flag — require token if false
+- [x] `X-Metrics-Token` header support
+- [x] `HEALTH_DETAILED_PUBLIC` env flag
+- [x] Build + test + lint pass
 
 ### Ticket 3.4 — Correlation ID and Normalized Errors
 - [ ] Correlation ID middleware (accept `X-Request-Id` or generate UUID)

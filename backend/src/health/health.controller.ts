@@ -1,6 +1,8 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { HealthService } from './health.service';
+import { DetailedHealthGuard } from './guards/detailed-health.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('health')
 @Controller('health')
@@ -29,6 +31,8 @@ export class HealthController {
    * Full dependency check: PostgreSQL, Redis, MinIO, AI provider, Queue.
    */
   @Get('detailed')
+  @UseGuards(DetailedHealthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Detailed health check',
     description:
