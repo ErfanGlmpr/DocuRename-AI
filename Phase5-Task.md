@@ -157,10 +157,10 @@ Track each task below. Check the box **only** when:
 - [x] Build + test + lint pass
 
 ### Ticket 3.4 — Correlation ID and Normalized Errors
-- [ ] Correlation ID middleware (accept `X-Request-Id` or generate UUID)
-- [ ] Include correlation ID in logs and error responses
-- [ ] Normalize error shape: `{ message, error, statusCode, requestId }`
-- [ ] Build + test + lint pass
+- [x] Correlation ID middleware (accept `X-Request-Id` or generate UUID)
+- [x] Include correlation ID in logs and error responses
+- [x] Normalize error shape: `{ message, error, statusCode, requestId }`
+- [x] Build + test + lint pass
 
 ---
 
