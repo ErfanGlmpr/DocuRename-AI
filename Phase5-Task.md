@@ -204,11 +204,11 @@ Track each task below. Check the box **only** when:
 - [x] Build + lint pass (frontend)
 
 ### Ticket 5.4 — Login Page
-- [ ] `/login` route with email, password
-- [ ] Calls `POST /auth/login`
-- [ ] Safe error messages
-- [ ] Redirects to `/dashboard`
-- [ ] Build + lint pass (frontend)
+- [x] `/login` route with email, password
+- [x] Calls `POST /auth/login`
+- [x] Safe error messages
+- [x] Redirects to `/dashboard`
+- [x] Build + lint pass (frontend)
 
 ### Ticket 5.5 — Authenticated Layout and Settings Page
 - [ ] Protected layout wrapping dashboard routes
