@@ -211,11 +211,11 @@ Track each task below. Check the box **only** when:
 - [x] Build + lint pass (frontend)
 
 ### Ticket 5.5 — Authenticated Layout and Settings Page
-- [ ] Protected layout wrapping dashboard routes
-- [ ] Logout button
-- [ ] `/settings` showing user, org, role
-- [ ] Unauthenticated redirect to `/login`
-- [ ] Build + lint pass (frontend)
+- [x] Protected layout wrapping dashboard routes
+- [x] Logout button
+- [x] `/settings` showing user, org, role
+- [x] Unauthenticated redirect to `/login`
+- [x] Build + lint pass (frontend)
 
 ---
 
