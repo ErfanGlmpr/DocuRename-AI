@@ -222,10 +222,10 @@ Track each task below. Check the box **only** when:
 ## Milestone 6 — Frontend Dashboard and Documents
 
 ### Ticket 6.1 — Dashboard Page
-- [ ] `/dashboard` with document counts (total, completed, failed, processing)
-- [ ] Recent uploads list
-- [ ] TanStack Query, loading/empty/error states
-- [ ] Build + lint pass (frontend)
+- [x] `/dashboard` with document counts (total, completed, failed, processing)
+- [x] Recent uploads list
+- [x] TanStack Query, loading/empty/error states
+- [x] Build + lint pass (frontend)
 
 ### Ticket 6.2 — Documents List and Upload Page
 - [ ] `/documents` with drag-and-drop PDF upload
