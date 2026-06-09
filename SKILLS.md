@@ -1048,6 +1048,9 @@ Use the correct package manager and workspace commands for the repository.
 
 A task is not complete if any build, lint, type-check, test, Prisma, or relevant workspace command is failing.
 
+Finally update TASKS.md with all implemented tickets marked with check [x] and keep the file updated with new tickets and phases.
+
+Update the Postman collection when endpoints are added or modified, and ensure related endpoints are grouped into properly named folders.
 ---
 
 ## 18. Agent Behavior Rules

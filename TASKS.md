@@ -302,13 +302,13 @@ Track each task below. Check the box **only** when:
 - [x] Fix E2E testing worker leaks (`forceExit` + `--runInBand`).
 
 ### Ticket 11.2 — Add Authorization and Tenant Isolation Tests
-- [ ] User cannot access another organization’s document.
-- [ ] Document list only returns current organization documents.
-- [ ] Document detail is scoped.
-- [ ] Download is scoped.
-- [ ] Retry is scoped.
-- [ ] Cancel is scoped.
-- [ ] Evaluation is scoped.
+- [x] User cannot access another organization’s document.
+- [x] Document list only returns current organization documents.
+- [x] Document detail is scoped.
+- [x] Download is scoped.
+- [x] Retry is scoped.
+- [x] Cancel is scoped.
+- [x] Evaluation is scoped.
 
 ### Ticket 11.3 — Add Upload Validation Tests
 - [ ] Rejects non-PDF.

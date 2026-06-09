@@ -19,7 +19,7 @@ describe('AuthController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    
+
     app.use(cookieParser());
     app.useGlobalPipes(
       new ValidationPipe({
@@ -30,7 +30,7 @@ describe('AuthController (e2e)', () => {
     );
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
-    
+
     await app.init();
   });
 
@@ -52,10 +52,14 @@ describe('AuthController (e2e)', () => {
       })
       .expect(201);
 
-    expect(response.body).toHaveProperty('accessToken');
-    expect(response.body.user).toBeDefined();
-    expect(response.body.user.email).toBe(testEmail);
-    expect(response.body.user).not.toHaveProperty('passwordHash');
+    const body = response.body as {
+      accessToken: string;
+      user: { email: string; passwordHash?: string };
+    };
+    expect(body).toHaveProperty('accessToken');
+    expect(body.user).toBeDefined();
+    expect(body.user.email).toBe(testEmail);
+    expect(body.user).not.toHaveProperty('passwordHash');
 
     // Check if user and org were created in DB
     const user = await prisma.user.findUnique({
@@ -77,14 +81,20 @@ describe('AuthController (e2e)', () => {
       })
       .expect(200); // login returns 200 OK
 
-    expect(response.body).toHaveProperty('accessToken');
-    expect(response.body.user).toBeDefined();
-    expect(response.body.user.email).toBe(testEmail);
-    
+    const body = response.body as {
+      accessToken: string;
+      user: { email: string };
+    };
+    expect(body).toHaveProperty('accessToken');
+    expect(body.user).toBeDefined();
+    expect(body.user.email).toBe(testEmail);
+
     // Refresh token should be in a cookie
-    const setCookieHeader = response.headers['set-cookie'];
+    const setCookieHeader = response.headers['set-cookie'] as string[];
     expect(setCookieHeader).toBeDefined();
-    const hasRefreshTokenCookie = setCookieHeader.some((cookie: string) => cookie.includes('refresh_token'));
+    const hasRefreshTokenCookie = setCookieHeader.some((cookie: string) =>
+      cookie.includes('refresh_token'),
+    );
     expect(hasRefreshTokenCookie).toBeTruthy();
   });
 
@@ -99,9 +109,7 @@ describe('AuthController (e2e)', () => {
   });
 
   it('/auth/me (GET) - Fails without token', async () => {
-    await request(app.getHttpServer())
-      .get('/auth/me')
-      .expect(401);
+    await request(app.getHttpServer()).get('/auth/me').expect(401);
   });
 
   it('/auth/me (GET) - Succeeds with token', async () => {
@@ -112,15 +120,17 @@ describe('AuthController (e2e)', () => {
         password: testPassword,
       });
 
-    const accessToken = loginResponse.body.accessToken;
+    const loginBody = loginResponse.body as { accessToken: string };
+    const accessToken = loginBody.accessToken;
 
     const response = await request(app.getHttpServer())
       .get('/auth/me')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
-    expect(response.body).toBeDefined();
-    expect(response.body.email).toBe(testEmail);
-    expect(response.body).not.toHaveProperty('passwordHash');
+    const meBody = response.body as { email: string; passwordHash?: string };
+    expect(meBody).toBeDefined();
+    expect(meBody.email).toBe(testEmail);
+    expect(meBody).not.toHaveProperty('passwordHash');
   });
 });
