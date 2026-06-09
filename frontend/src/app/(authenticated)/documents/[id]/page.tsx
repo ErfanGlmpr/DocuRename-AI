@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
+import { getToken } from '@/lib/auth';
 import { Document } from '@/lib/types';
 import { format } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,10 +30,81 @@ export default function DocumentDetailPage() {
   const { data: doc, isLoading, error } = useQuery<Document>({
     queryKey: ['document', documentId],
     queryFn: () => apiClient(`/documents/${documentId}`),
+    // Polling fallback
+    refetchInterval: (query) => {
+      const currentDoc = query.state.data;
+      const isProcessing = currentDoc && ['QUEUED', 'EXTRACTING_TEXT', 'ANALYZING_WITH_AI', 'RENAMING'].includes(currentDoc.status);
+      return isProcessing ? 5000 : false;
+    },
   });
 
   const [isDownloading, setIsDownloading] = React.useState(false);
   const queryClient = useQueryClient();
+  const token = getToken();
+
+  // Setup SSE for live updates for this document
+  useEffect(() => {
+    if (!token || !documentId) return;
+
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+    let isMounted = true;
+    let activeReader: ReadableStreamDefaultReader<Uint8Array> | null = null;
+
+    const fetchSSE = async () => {
+      let retryCount = 0;
+      while (isMounted) {
+        try {
+          const response = await fetch(`${baseUrl}/documents/${documentId}/events`, {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: 'text/event-stream',
+            },
+          });
+
+          if (!response.ok || !response.body) {
+             await new Promise(r => setTimeout(r, 2000));
+             continue;
+          }
+
+          if (!isMounted) {
+            response.body.cancel().catch(() => {});
+            return;
+          }
+
+          activeReader = response.body.getReader();
+          retryCount = 0;
+
+          while (isMounted) {
+            const readPromise = activeReader.read();
+            readPromise.catch(() => {});
+            const { done } = await readPromise;
+            if (done || !isMounted) break;
+            queryClient.invalidateQueries({ queryKey: ['document', documentId] });
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
+          }
+        } catch (err: unknown) {
+          if (err instanceof TypeError && err.message.includes('network error')) {
+            // Expected if server closes connection
+          } else {
+            console.error('SSE Error:', err);
+          }
+          if (isMounted) {
+             await new Promise(r => setTimeout(r, Math.min(10000, 1000 * Math.pow(2, retryCount++))));
+          }
+        }
+      }
+    };
+
+    fetchSSE();
+
+    return () => {
+      isMounted = false;
+      if (activeReader) {
+        activeReader.cancel().catch(() => {});
+      }
+    };
+  }, [documentId, token, queryClient]);
 
   const retryMutation = useMutation({
     mutationFn: (id: string) => apiClient(`/documents/${id}/retry`, { method: 'POST' }),

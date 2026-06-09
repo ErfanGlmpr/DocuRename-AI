@@ -48,6 +48,14 @@ export default function DocumentsPage() {
   const { data: documents, isLoading } = useQuery<Document[]>({
     queryKey: ['documents'],
     queryFn: () => apiClient('/documents'),
+    // Polling fallback: poll every 5s if any document is currently processing.
+    refetchInterval: (query) => {
+      const docs = query.state.data;
+      const isProcessing = docs?.some((d) =>
+        ['QUEUED', 'EXTRACTING_TEXT', 'ANALYZING_WITH_AI', 'RENAMING'].includes(d.status)
+      );
+      return isProcessing ? 5000 : false;
+    },
   });
 
   // 2. Setup SSE for live updates
@@ -59,33 +67,51 @@ export default function DocumentsPage() {
     let activeReader: ReadableStreamDefaultReader<Uint8Array> | null = null;
 
     const fetchSSE = async () => {
-      try {
-        const response = await fetch(`${baseUrl}/documents/events`, {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: 'text/event-stream',
-          },
-        });
+      let retryCount = 0;
+      while (isMounted) {
+        try {
+          const response = await fetch(`${baseUrl}/documents/events`, {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: 'text/event-stream',
+            },
+          });
 
-        if (!response.ok || !response.body) return;
+          if (!response.ok || !response.body) {
+             // Wait before reconnecting on server error
+             await new Promise(r => setTimeout(r, 2000));
+             continue;
+          }
 
-        // If the component unmounted while we were waiting for the connection,
-        // close the stream immediately to prevent memory leaks.
-        if (!isMounted) {
-          response.body.cancel().catch(() => {});
-          return;
+          if (!isMounted) {
+            response.body.cancel().catch(() => {});
+            return;
+          }
+
+          activeReader = response.body.getReader();
+          retryCount = 0; // reset on successful connection
+
+          while (isMounted) {
+            const readPromise = activeReader.read();
+            readPromise.catch(() => {}); // catch network drops
+            const { done } = await readPromise;
+            if (done || !isMounted) break;
+            // Any chunk received means an event occurred
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
+          }
+        } catch (err: unknown) {
+          // Only log if it's not a generic network drop
+          if (err instanceof TypeError && err.message.includes('network error')) {
+            // network error is expected if server closes connection; auto-reconnect will handle it.
+          } else {
+             console.error('SSE Error:', err);
+          }
+          // Exponential backoff for reconnects
+          if (isMounted) {
+             await new Promise(r => setTimeout(r, Math.min(10000, 1000 * Math.pow(2, retryCount++))));
+          }
         }
-
-        activeReader = response.body.getReader();
-        while (isMounted) {
-          const { done } = await activeReader.read();
-          if (done || !isMounted) break;
-          // Any chunk received means an event occurred
-          queryClient.invalidateQueries({ queryKey: ['documents'] });
-        }
-      } catch (err: unknown) {
-        console.error('SSE Error:', err);
       }
     };
 
