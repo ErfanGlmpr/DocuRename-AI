@@ -260,6 +260,18 @@ Track each task below. Check the box **only** when:
 
 ---
 
+## Milestone 9 — Multi-Instance SSE Readiness
+
+### Ticket 9.1 — Add Configurable Event Transport
+- [x] Backend: Add `EVENT_TRANSPORT` config (default to `in-memory`).
+- [x] Backend: Conditionally establish `ioredis` `pubClient` and `subClient` if configured.
+- [x] Backend: Subscribe `subClient` to `document-events` channel.
+- [x] Backend: Update `emit()` to conditionally publish to Redis or direct RxJS Subject.
+- [x] Backend: Mock `ConfigService` in existing events tests.
+- [x] Backend: Close Redis clients gracefully in `onModuleDestroy`.
+
+---
+
 ## Milestone 14 — Security Hardening (HttpOnly Cookies)
 
 ### Ticket 14.1 — Silent Token Refresh & HttpOnly Cookies
