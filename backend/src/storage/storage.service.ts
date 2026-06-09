@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   S3Client,
@@ -13,7 +13,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 @Injectable()
-export class StorageService {
+export class StorageService implements OnModuleDestroy {
   private readonly logger = new Logger(StorageService.name);
   private readonly s3Client: S3Client;
   private readonly bucket: string;
@@ -152,5 +152,9 @@ export class StorageService {
   /** Checks that the configured bucket is accessible. Used by HealthService. */
   async healthCheck(): Promise<void> {
     await this.s3Client.send(new HeadBucketCommand({ Bucket: this.bucket }));
+  }
+
+  onModuleDestroy() {
+    this.s3Client.destroy();
   }
 }
