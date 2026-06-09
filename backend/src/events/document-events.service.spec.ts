@@ -4,13 +4,22 @@ import {
   DocumentEventType,
 } from './document-events.service';
 import { firstValueFrom, take, toArray } from 'rxjs';
+import { ConfigService } from '@nestjs/config';
 
 describe('DocumentEventsService', () => {
   let service: DocumentEventsService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [DocumentEventsService],
+      providers: [
+        DocumentEventsService,
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn().mockReturnValue('in-memory'),
+          },
+        },
+      ],
     }).compile();
     service = module.get<DocumentEventsService>(DocumentEventsService);
   });

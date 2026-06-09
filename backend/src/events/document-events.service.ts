@@ -1,6 +1,13 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+} from '@nestjs/common';
 import { Observable, Subject } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
+import { ConfigService } from '@nestjs/config';
+import Redis from 'ioredis';
 
 export type DocumentEventType =
   | 'DOCUMENT_QUEUED'
@@ -36,12 +43,70 @@ export interface DocumentEvent {
  * No sensitive data (PII, file content, API keys) must be placed in events.
  */
 @Injectable()
-export class DocumentEventsService implements OnModuleDestroy {
+export class DocumentEventsService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(DocumentEventsService.name);
   private readonly global$ = new Subject<DocumentEvent>();
+  private pubClient?: Redis;
+  private subClient?: Redis;
+  private readonly transport: string;
+  private readonly redisChannel = 'document-events';
+
+  constructor(private configService: ConfigService) {
+    this.transport =
+      this.configService.get<string>('EVENT_TRANSPORT') || 'in-memory';
+  }
+
+  onModuleInit() {
+    if (this.transport === 'redis') {
+      const host = this.configService.get<string>('REDIS_HOST') || 'localhost';
+      const port = this.configService.get<number>('REDIS_PORT') || 6379;
+
+      this.pubClient = new Redis({ host, port });
+      this.subClient = new Redis({ host, port });
+
+      this.subClient
+        .subscribe(this.redisChannel)
+        .then((count) => {
+          this.logger.log(
+            `Subscribed to ${String(
+              count,
+            )} channels. Listening for document events.`,
+          );
+        })
+        .catch((err) => {
+          this.logger.error(
+            `Failed to subscribe to ${this.redisChannel}:`,
+            err,
+          );
+        });
+
+      this.subClient.on('message', (channel, message) => {
+        if (channel === this.redisChannel) {
+          try {
+            const event = JSON.parse(message) as DocumentEvent;
+            this.global$.next(event);
+          } catch (e) {
+            this.logger.error(
+              'Failed to parse incoming document event from Redis',
+              e,
+            );
+          }
+        }
+      });
+    }
+  }
 
   /** Emit an event for a document. Called by the processor and queue services. */
   emit(event: DocumentEvent): void {
-    this.global$.next(event);
+    if (this.transport === 'redis' && this.pubClient) {
+      this.pubClient
+        .publish(this.redisChannel, JSON.stringify(event))
+        .catch((err) => {
+          this.logger.error('Failed to publish document event to Redis', err);
+        });
+    } else {
+      this.global$.next(event);
+    }
   }
 
   /**
@@ -91,5 +156,11 @@ export class DocumentEventsService implements OnModuleDestroy {
 
   onModuleDestroy(): void {
     this.global$.complete();
+    if (this.pubClient) {
+      void this.pubClient.quit();
+    }
+    if (this.subClient) {
+      void this.subClient.quit();
+    }
   }
 }

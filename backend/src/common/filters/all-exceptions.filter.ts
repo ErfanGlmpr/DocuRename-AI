@@ -57,8 +57,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
         }`,
         exception instanceof Error ? exception.stack : '',
       );
+    } else if (
+      status === HttpStatus.UNAUTHORIZED ||
+      status === HttpStatus.NOT_FOUND
+    ) {
+      // Downgrade expected auth checks and not found to debug to reduce noise
+      this.logger.debug(
+        `[${requestId}] ${request.method} ${request.url} - ${status} - ${JSON.stringify(
+          message,
+        )}`,
+      );
     } else {
-      // For client errors (400-499), just log the warning
+      // For other client errors (400-499), log the warning
       this.logger.warn(
         `[${requestId}] ${request.method} ${request.url} - ${status} - ${JSON.stringify(
           message,
