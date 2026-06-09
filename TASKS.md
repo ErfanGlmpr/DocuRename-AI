@@ -321,10 +321,10 @@ Track each task below. Check the box **only** when:
 - [x] Does not store invalid files.
 
 ### Ticket 11.4 — Add API Hardening Tests
-- [ ] Validation pipe rejects unknown fields.
-- [ ] Unauthenticated protected route fails.
-- [ ] Rate limiter works.
-- [ ] Metrics protection works when `METRICS_PUBLIC=false`.
+- [x] Validation pipe rejects unknown fields.
+- [x] Unauthenticated protected route fails.
+- [x] Rate limiter works.
+- [x] Metrics protection works when `METRICS_PUBLIC=false`.
 
 ### Ticket 11.5 — Add Frontend Tests
 - [ ] Login form renders and submits.
