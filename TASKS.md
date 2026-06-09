@@ -350,10 +350,22 @@ Track each task below. Check the box **only** when:
 
 ---
 
-## Milestone 13 — Docker Compose
+## Milestone 13 — Docker Compose & Infrastructure
 
-### Ticket 13.1 — Add Frontend to Docker Compose
-- [ ] Update `docker-compose.yml` to include frontend.
+### Ticket 13.1 — Full Stack Containerization
+- [x] Backend: Add `Dockerfile` for standalone production-ready NestJS builds.
+- [x] Frontend: Configure `next.config.ts` for standalone output.
+- [x] Frontend: Add `Dockerfile` for optimized multi-stage Next.js builds.
+- [x] Compose: Migrate backend execution from manual scripts to `docker-compose.yml`.
+- [x] Compose: Add frontend service mapping to port 3001 in `docker-compose.yml`.
+- [x] Environment: Establish `env_file` loading strategy across containers.
+- [x] Bugfix: Remove destructive `npx prisma db push --accept-data-loss` from backend startup to prevent silent Phase 5 schema data wipes.
+
+### Ticket 13.2 — Developer Experience (Local Overrides)
+- [x] Create `docker-compose.override.example.yml` for isolated hot-reloading dev environments.
+- [x] Configure anonymous volumes (`/app/node_modules`) to avoid cross-OS dependency conflicts.
+- [x] Map local source folders to override production standalone images with `npm run dev` and `npm run start:dev`.
+- [x] Add override configurations to `.gitignore`.
 
 ---
 

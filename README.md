@@ -36,23 +36,39 @@ Phase 2 adds a robust privacy pipeline before data is sent to the AI:
 - Node.js 18+
 - Docker and Docker Compose
 
-### 1. Configure Environment (Backend)
-Navigate to the `backend` directory:
-```bash
-cd backend
-```
-Copy the example environment file:
-```bash
-cp .env.example .env
-```
-*(Note: `.env` already contains local dev defaults. For cloud models like Gemini, OpenAI, etc. you'll need to configure their respective API keys).*
+### 1. Configure Environment Variables
+You need to set up your environment variables for both the frontend and backend.
 
-### 2. Start Infrastructure (Docker Compose)
+```bash
+# Backend
+cd backend
+cp .env.example .env
+
+# Frontend
+cd ../frontend
+cp .env.example .env.local
+cd ..
+```
+*(Note: `.env` already contains local dev defaults. For cloud models like Gemini, OpenAI, etc. you'll need to configure their respective API keys in the backend).*
+
+### 2. Configure Development Overrides
+This project uses the "Override" pattern for local development. This ensures you get hot-reloading and verbose request logging without changing the production configurations.
+
+Copy the provided template to enable the development overrides:
+```bash
+cp docker-compose.override.example.yml docker-compose.override.yml
+```
+*(Note: `docker-compose.override.yml` is ignored by git so you can safely make personal local changes to it if needed).*
+
+### 3. Start the Full Stack
 Make sure Docker is running. From the **root** of the project, run:
 ```bash
-docker compose up -d
+docker compose up
 ```
-This starts:
+
+This command will automatically build and start the entire stack:
+- **Frontend** (Next.js - Hot Reloading on Port 3001)
+- **Backend** (NestJS - Hot Reloading on Port 3000)
 - **PostgreSQL** (Port 5434)
 - **Redis** (Port 6379)
 - **MinIO** (Port 9000/9001)
@@ -65,32 +81,15 @@ This starts:
 > - The **OCR Sidecar** needs to download Tesseract language packs during its first build. To verify or build it specifically, run `docker compose build ocr-sidecar`.
 > - **ClamAV** will take 5-10 minutes on its first run to download its database of signature definitions. Until completed, virus scanning requests will fail/log warnings if enabled.
 
-### 3. Pull the Ollama Model
-The Ollama container starts empty; you must pull the default model manually (this is persistent):
+### 4. Pull the Ollama Model
+The Ollama container starts empty; you must pull the default model manually (this is persistent, you only do this once):
 ```bash
 docker exec -it pdf_ai_ollama ollama pull llama3.1:8b
 ```
 
-### 4. Setup Backend (NPM & Prisma)
-From the `backend` directory:
-
-1. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-
-2. **Initialize Database and Generate Client**:
-   Apply existing migrations to the database and generate the Prisma Client:
-   ```bash
-   npx prisma db push
-   # Or to run standard migration workflows:
-   # npx prisma migrate dev
-   ```
-
-3. **Start Development Server**:
-   ```bash
-   npm run start:dev
-   ```
+### 5. Access the Application
+- **Frontend Dashboard**: [http://localhost:3001](http://localhost:3001)
+- **Backend API Docs**: [http://localhost:3000/api](http://localhost:3000/api)
 
 ---
 
