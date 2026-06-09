@@ -327,12 +327,12 @@ Track each task below. Check the box **only** when:
 - [x] Metrics protection works when `METRICS_PUBLIC=false`.
 
 ### Ticket 11.5 — Add Frontend Tests
-- [ ] Login form renders and submits.
-- [ ] Register form renders and submits.
-- [ ] Upload flow renders.
-- [ ] Documents list renders statuses.
-- [ ] Document detail hides sensitive fields.
-- [ ] API client attaches auth token.
+- [x] Login form renders and submits.
+- [x] Register form renders and submits.
+- [x] Upload flow renders.
+- [x] Documents list renders statuses.
+- [x] Document detail hides sensitive fields.
+- [x] API client attaches auth token.
 
 ---
 
