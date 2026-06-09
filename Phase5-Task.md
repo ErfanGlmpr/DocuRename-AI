@@ -222,23 +222,20 @@ Track each task below. Check the box **only** when:
 ## Milestone 6 — Frontend Dashboard and Documents
 
 ### Ticket 6.1 — Dashboard Page
-- [ ] `/dashboard` with document counts (total, completed, failed, processing)
-- [ ] Recent uploads list
-- [ ] TanStack Query, loading/empty/error states
-- [ ] Build + lint pass (frontend)
+- [x] `/dashboard` with document counts (total, completed, failed, processing)
+- [x] Recent uploads list
+- [x] TanStack Query, loading/empty/error states
+- [x] Build + lint pass (frontend)
 
 ### Ticket 6.2 — Documents List and Upload Page
-- [ ] `/documents` with drag-and-drop PDF upload
-- [ ] Document table with status, filename, category, confidence, quality
-- [ ] Retry/cancel actions
-- [ ] SSE live updates or polling fallback
-- [ ] Build + lint pass (frontend)
+- [x] `/documents` with drag-and-drop PDF upload
+- [x] Document table with status, filename, category, confidence, quality
+- [x] Retry/cancel actions
+- [x] SSE live updates or polling fallback
+- [x] Build + lint pass (frontend)
 
 ### Ticket 6.3 — Document Detail Page
-- [ ] `/documents/:id` detail view
-- [ ] Display metadata without raw text/PII
-- [ ] Build + lint pass (frontend)
+- [x] `/documents/:id` detail view
+- [x] Display metadata without raw text/PII
+- [x] Build + lint pass (frontend)
 
-### Ticket 6.4 — AI Evaluation Page
-- [ ] `/documents/:id/evaluations` — run and list AI evaluations
-- [ ] Build + lint pass (frontend)

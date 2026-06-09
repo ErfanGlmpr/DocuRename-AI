@@ -133,6 +133,7 @@ export class DocumentsService {
 
     await this.documentQueue.add('process-pdf', {
       documentId: id,
+      organizationId,
     });
 
     return { message: 'Document requeued' };

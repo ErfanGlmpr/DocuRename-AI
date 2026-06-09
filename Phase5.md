@@ -8,23 +8,7 @@
 
 ## Global Implementation Rules
 
-Before starting any ticket, follow these rules:
-
-* Preserve all existing Phase 1–4 functionality.
-* Do not rewrite the existing processing pipeline unnecessarily.
-* Do not bypass the privacy, PII redaction, prompt minimization, or tokenization pipeline.
-* Do not expose raw extracted text, full redacted text, token maps, passwords, tokens, or PII through public APIs or frontend.
-* Keep strict TypeScript.
-* Keep the existing NestJS architecture modular.
-* Prefer incremental, focused commits.
-* Add/update tests where practical.
-* Update `.env.example` files when adding environment variables.
-* Keep the repository suitable as a public portfolio project.
-* Analyze the postman collection `PDF-Renamer-API.postman_collection.json` and update/edit it if needed after each feature/ticket implementation.
-* Once a ticket is complete, run `npm run build`, `npm run test` and `npm run lint` in the backend and frontend directories respectively and check that everything is working.
-* Do not proceed until all tests pass and build succeeds. and linting issues are resolved.
-* Update README.md after each feature/ticket implementation with new features documented and necessary steps for setup and running the project.
-* Update Phase5-Task.md checklist after each ticket implementation with the status of the ticket.
+Before implementing any task, read SKILLS.md first and follow it as the engineering standard for this repository. Then read this file and implement only the requested ticket scope.
 
 ---
 
