@@ -311,14 +311,14 @@ Track each task below. Check the box **only** when:
 - [x] Evaluation is scoped.
 
 ### Ticket 11.3 — Add Upload Validation Tests
-- [ ] Rejects non-PDF.
-- [ ] Rejects bad magic bytes.
-- [ ] Rejects oversized file.
-- [ ] Rejects too many files.
-- [ ] Rejects empty file.
-- [ ] Rejects oversized total upload.
-- [ ] Does not enqueue invalid files.
-- [ ] Does not store invalid files.
+- [x] Rejects non-PDF.
+- [x] Rejects bad magic bytes.
+- [x] Rejects oversized file.
+- [x] Rejects too many files.
+- [x] Rejects empty file.
+- [x] Rejects oversized total upload.
+- [x] Does not enqueue invalid files.
+- [x] Does not store invalid files.
 
 ### Ticket 11.4 — Add API Hardening Tests
 - [ ] Validation pipe rejects unknown fields.
