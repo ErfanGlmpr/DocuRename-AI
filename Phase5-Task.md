@@ -239,6 +239,3 @@ Track each task below. Check the box **only** when:
 - [x] Display metadata without raw text/PII
 - [x] Build + lint pass (frontend)
 
-### Ticket 6.4 — AI Evaluation Page
-- [ ] `/documents/:id/evaluations` — run and list AI evaluations
-- [ ] Build + lint pass (frontend)

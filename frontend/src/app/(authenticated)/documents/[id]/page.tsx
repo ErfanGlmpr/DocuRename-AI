@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import { Document } from '@/lib/types';
 import { format } from 'date-fns';
@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileText, CheckCircle2, Clock, ShieldCheck, ShieldAlert, XCircle } from 'lucide-react';
+import { ArrowLeft, FileText, CheckCircle2, Clock, ShieldCheck, ShieldAlert, XCircle, Download, Loader2, RefreshCw, X } from 'lucide-react';
 
 const getStatusBadgeVariant = (status: string) => {
   switch (status) {
@@ -30,6 +30,39 @@ export default function DocumentDetailPage() {
     queryKey: ['document', documentId],
     queryFn: () => apiClient(`/documents/${documentId}`),
   });
+
+  const [isDownloading, setIsDownloading] = React.useState(false);
+  const queryClient = useQueryClient();
+
+  const retryMutation = useMutation({
+    mutationFn: (id: string) => apiClient(`/documents/${id}/retry`, { method: 'POST' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['document', documentId] });
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+    },
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: (id: string) => apiClient(`/documents/${id}/cancel`, { method: 'POST' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['document', documentId] });
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+    },
+  });
+
+  const handleDownload = async () => {
+    try {
+      setIsDownloading(true);
+      const res = await apiClient<{ url: string }>(`/documents/${documentId}/download`);
+      if (res.url) {
+        window.open(res.url, '_blank');
+      }
+    } catch (err) {
+      console.error('Failed to download document', err);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -63,6 +96,38 @@ export default function DocumentDetailPage() {
               </Badge>
             </p>
           </div>
+        </div>
+        <div className="flex gap-2">
+          {doc.status === 'FAILED' && (
+            <Button
+              variant="outline"
+              onClick={() => retryMutation.mutate(doc.id)}
+              disabled={retryMutation.isPending}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" /> Retry
+            </Button>
+          )}
+
+          {['QUEUED', 'EXTRACTING_TEXT', 'ANALYZING_WITH_AI', 'RENAMING'].includes(doc.status) && (
+            <Button
+              variant="destructive"
+              onClick={() => cancelMutation.mutate(doc.id)}
+              disabled={cancelMutation.isPending}
+            >
+              <X className="h-4 w-4 mr-2" /> Cancel
+            </Button>
+          )}
+
+          {(doc.status === 'COMPLETED' || doc.status === 'NEEDS_REVIEW') && (
+            <Button onClick={handleDownload} disabled={isDownloading}>
+              {isDownloading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              Download PDF
+            </Button>
+          )}
         </div>
       </div>
 

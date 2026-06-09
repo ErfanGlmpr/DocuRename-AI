@@ -7,7 +7,6 @@ import { apiClient } from '@/lib/api-client';
 import { getToken } from '@/lib/auth';
 import type { Document } from '@/lib/types';
 import { UploadZone } from '@/components/upload-zone';
-import { fetchEventSource } from '@microsoft/fetch-event-source';
 import {
   Table,
   TableBody,
@@ -55,32 +54,48 @@ export default function DocumentsPage() {
   useEffect(() => {
     if (!token) return;
 
-    const controller = new AbortController();
     const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+    let isMounted = true;
+    let activeReader: ReadableStreamDefaultReader<Uint8Array> | null = null;
 
-    fetchEventSource(`${baseUrl}/documents/events`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      signal: controller.signal,
-      onmessage() {
-        // Any incoming SSE message means document state changed, so we refetch the list
-        queryClient.invalidateQueries({ queryKey: ['documents'] });
-      },
-      onerror() {
-        // Ignore and let it silently retry
+    const fetchSSE = async () => {
+      try {
+        const response = await fetch(`${baseUrl}/documents/events`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'text/event-stream',
+          },
+        });
+
+        if (!response.ok || !response.body) return;
+
+        // If the component unmounted while we were waiting for the connection,
+        // close the stream immediately to prevent memory leaks.
+        if (!isMounted) {
+          response.body.cancel().catch(() => {});
+          return;
+        }
+
+        activeReader = response.body.getReader();
+        while (isMounted) {
+          const { done } = await activeReader.read();
+          if (done || !isMounted) break;
+          // Any chunk received means an event occurred
+          queryClient.invalidateQueries({ queryKey: ['documents'] });
+        }
+      } catch (err: unknown) {
+        console.error('SSE Error:', err);
       }
-    }).catch((err) => {
-      if (err.name === 'AbortError') {
-        // Expected when component unmounts
-        return;
-      }
-      console.error('SSE Error:', err);
-    });
+    };
+
+    fetchSSE();
 
     return () => {
-      controller.abort();
+      isMounted = false;
+      if (activeReader) {
+        activeReader.cancel().catch(() => {});
+      }
     };
   }, [token, queryClient]);
 
@@ -132,7 +147,7 @@ export default function DocumentsPage() {
             ) : (
               documents.map((doc) => {
                 const isProcessing = ['QUEUED', 'EXTRACTING_TEXT', 'ANALYZING_WITH_AI', 'RENAMING'].includes(doc.status);
-                
+
                 return (
                   <TableRow key={doc.id}>
                     <TableCell className="font-medium max-w-[200px] truncate" title={doc.originalName}>
