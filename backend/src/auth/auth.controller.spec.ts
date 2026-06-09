@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import type { Request, Response } from 'express';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -42,10 +43,16 @@ describe('AuthController', () => {
 
       mockAuthService.register.mockResolvedValue(expectedResult);
 
-      const result = await controller.register(dto);
+      const mockRes = { cookie: jest.fn() } as unknown as Response;
+      const result = await controller.register(dto, mockRes);
 
-      expect(result).toEqual(expectedResult);
+      expect(result).toEqual({ accessToken: 'tok', user: {} });
       expect(mockAuthService.register).toHaveBeenCalledWith(dto);
+      expect(mockRes.cookie).toHaveBeenCalledWith(
+        'refresh_token',
+        'ref',
+        expect.any(Object),
+      );
     });
   });
 
@@ -60,16 +67,21 @@ describe('AuthController', () => {
 
       mockAuthService.login.mockResolvedValue(expectedResult);
 
-      const result = await controller.login(dto);
+      const mockRes = { cookie: jest.fn() } as unknown as Response;
+      const result = await controller.login(dto, mockRes);
 
-      expect(result).toEqual(expectedResult);
+      expect(result).toEqual({ accessToken: 'tok', user: {} });
       expect(mockAuthService.login).toHaveBeenCalledWith(dto);
+      expect(mockRes.cookie).toHaveBeenCalledWith(
+        'refresh_token',
+        'ref',
+        expect.any(Object),
+      );
     });
   });
 
   describe('POST /auth/refresh', () => {
     it('should delegate to authService.refresh with the raw token', async () => {
-      const dto = { refreshToken: 'my-refresh-token' };
       const expectedResult = {
         accessToken: 'new-tok',
         refreshToken: 'new-ref',
@@ -77,10 +89,20 @@ describe('AuthController', () => {
 
       mockAuthService.refresh.mockResolvedValue(expectedResult);
 
-      const result = await controller.refresh(dto);
+      const mockReq = {
+        cookies: { refresh_token: 'my-refresh-token' },
+      } as unknown as Request;
+      const mockRes = { cookie: jest.fn() } as unknown as Response;
 
-      expect(result).toEqual(expectedResult);
+      const result = await controller.refresh(mockReq, mockRes);
+
+      expect(result).toEqual({ accessToken: 'new-tok' });
       expect(mockAuthService.refresh).toHaveBeenCalledWith('my-refresh-token');
+      expect(mockRes.cookie).toHaveBeenCalledWith(
+        'refresh_token',
+        'new-ref',
+        expect.any(Object),
+      );
     });
   });
 
@@ -94,9 +116,13 @@ describe('AuthController', () => {
       };
       mockAuthService.logout.mockResolvedValue(undefined);
 
-      const result = await controller.logout(currentUser);
+      const mockRes = { clearCookie: jest.fn() } as unknown as Response;
+      const result = await controller.logout(currentUser, mockRes);
 
       expect(mockAuthService.logout).toHaveBeenCalledWith('user-1');
+      expect(mockRes.clearCookie).toHaveBeenCalledWith('refresh_token', {
+        path: '/auth',
+      });
       expect(result).toEqual({ message: 'Logged out successfully' });
     });
   });
@@ -125,9 +151,18 @@ describe('AuthController', () => {
 
       mockAuthService.switchOrganization.mockResolvedValue(expectedResult);
 
-      const result = await controller.switchOrganization(currentUser, dto);
+      const mockRes = { cookie: jest.fn() } as unknown as Response;
+      const result = await controller.switchOrganization(
+        currentUser,
+        dto,
+        mockRes,
+      );
 
-      expect(result).toEqual(expectedResult);
+      const safeResult = {
+        accessToken: 'new-tok',
+        user: expectedResult.user,
+      };
+      expect(result).toEqual(safeResult);
       expect(mockAuthService.switchOrganization).toHaveBeenCalledWith(
         'user-1',
         'org-2',

@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
-import { getToken, clearToken } from '@/lib/auth';
+import { getToken, setToken, clearToken } from '@/lib/auth';
 import type { Document } from '@/lib/types';
 import { UploadZone } from '@/components/upload-zone';
 import {
@@ -84,9 +84,20 @@ export default function DocumentsPage() {
 
           if (!response.ok || !response.body) {
             if (response.status === 401) {
-              clearToken();
-              window.dispatchEvent(new Event('auth-unauthorized'));
-              break;
+              try {
+                const refreshRes = await fetch(`${baseUrl}/auth/refresh`, {
+                  method: 'POST',
+                  credentials: 'include',
+                });
+                if (!refreshRes.ok) throw new Error('Refresh failed');
+                const data = await refreshRes.json();
+                setToken(data.accessToken);
+                continue;
+              } catch {
+                clearToken();
+                window.dispatchEvent(new Event('auth-unauthorized'));
+                break;
+              }
             }
              // Wait before reconnecting on server error
              await new Promise(r => setTimeout(r, 2000));

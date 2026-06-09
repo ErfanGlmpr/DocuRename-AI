@@ -257,3 +257,17 @@ Track each task below. Check the box **only** when:
 - [x] Delete stale failed documents older than configured days
 - [x] Delete old AI evaluation runs
 - [x] Detect/delete orphaned storage objects
+
+---
+
+## Milestone 14 — Security Hardening (HttpOnly Cookies)
+
+### Ticket 14.1 — Silent Token Refresh & HttpOnly Cookies
+- [x] Backend: Transition from JSON `refreshToken` to `HttpOnly`, `Secure` cookies.
+- [x] Backend: Parse cookies via `cookie-parser`.
+- [x] Backend: Update `AuthController` tests to mock Express `Request` and `Response`.
+- [x] Frontend: Configure `credentials: 'include'` on API client.
+- [x] Frontend: Implement 401 interceptor in `apiClient` to silently rotate tokens using the HttpOnly cookie.
+- [x] Frontend: Implement promise lock to prevent redundant concurrent refresh requests.
+- [x] Frontend: Update SSE (`fetchSSE`) logic to handle 401s and rotate token.
+- [x] Build + test + lint pass (backend and frontend)
