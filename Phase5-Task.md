@@ -272,6 +272,24 @@ Track each task below. Check the box **only** when:
 
 ---
 
+## Milestone 10 — Optional Organization Admin Overview
+
+### Ticket 10.1 — Add Basic Admin Overview Endpoint
+- [x] Create `@Roles()` decorator and `OrganizationRoleGuard`.
+- [x] Create `AdminModule`, `AdminController`, and `AdminService`.
+- [x] Retrieve document count by status and average processing duration.
+- [x] Protect endpoint so only `OWNER` and `ADMIN` can access.
+- [x] Scope statistics strictly to the user's `organizationId`.
+
+### Ticket 10.2 — Add Frontend Admin Dashboard
+- [x] Update frontend `User` type with `role` property.
+- [x] Define `AdminOverview` data interface.
+- [x] Create protected `/admin` route fetching from `/admin/overview`.
+- [x] Build dashboard displaying metrics grouped in cards.
+- [x] Add restricted `Admin Panel` link to global layout navigation.
+
+---
+
 ## Milestone 14 — Security Hardening (HttpOnly Cookies)
 
 ### Ticket 14.1 — Silent Token Refresh & HttpOnly Cookies
