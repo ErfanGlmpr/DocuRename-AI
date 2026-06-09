@@ -6,6 +6,9 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Res,
+  Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -14,20 +17,33 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import type { AuthResponse, TokenPair, UserContext } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { SwitchOrganizationDto } from './dto/switch-organization.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './current-user.decorator';
 import type { AuthenticatedUser } from './types/authenticated-user.type';
 
+type SafeAuthResponse = Omit<AuthResponse, 'refreshToken'>;
+type SafeTokenPair = Omit<TokenPair, 'refreshToken'>;
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  private setRefreshCookie(res: Response, refreshToken: string) {
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/auth',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+  }
 
   @Post('register')
   @Throttle({
@@ -43,8 +59,13 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'User registered successfully' })
   @ApiResponse({ status: 409, description: 'Email already in use' })
   @ApiResponse({ status: 400, description: 'Validation error' })
-  async register(@Body() dto: RegisterDto): Promise<AuthResponse> {
-    return this.authService.register(dto);
+  async register(
+    @Body() dto: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<SafeAuthResponse> {
+    const { refreshToken, ...result } = await this.authService.register(dto);
+    this.setRefreshCookie(res, refreshToken);
+    return result;
   }
 
   @Post('login')
@@ -58,8 +79,13 @@ export class AuthController {
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body() dto: LoginDto): Promise<AuthResponse> {
-    return this.authService.login(dto);
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<SafeAuthResponse> {
+    const { refreshToken, ...result } = await this.authService.login(dto);
+    this.setRefreshCookie(res, refreshToken);
+    return result;
   }
 
   @Post('refresh')
@@ -69,8 +95,18 @@ export class AuthController {
   })
   @ApiResponse({ status: 200, description: 'Tokens refreshed successfully' })
   @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
-  async refresh(@Body() dto: RefreshTokenDto): Promise<TokenPair> {
-    return this.authService.refresh(dto.refreshToken);
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<SafeTokenPair> {
+    const refreshToken = req.cookies['refresh_token'] as string | undefined;
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token is missing');
+    }
+    const { refreshToken: newRefreshToken, ...result } =
+      await this.authService.refresh(refreshToken);
+    this.setRefreshCookie(res, newRefreshToken);
+    return result;
   }
 
   @Post('logout')
@@ -84,8 +120,10 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async logout(
     @CurrentUser() user: AuthenticatedUser,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string }> {
     await this.authService.logout(user.id);
+    res.clearCookie('refresh_token', { path: '/auth' });
     return { message: 'Logged out successfully' };
   }
 
@@ -112,7 +150,11 @@ export class AuthController {
   async switchOrganization(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: SwitchOrganizationDto,
-  ): Promise<AuthResponse> {
-    return this.authService.switchOrganization(user.id, dto.organizationId);
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<SafeAuthResponse> {
+    const { refreshToken, ...result } =
+      await this.authService.switchOrganization(user.id, dto.organizationId);
+    this.setRefreshCookie(res, refreshToken);
+    return result;
   }
 }

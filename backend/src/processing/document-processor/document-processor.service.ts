@@ -20,7 +20,10 @@ import { sanitizeAiError } from '../../ai/utils/parse-ai-json';
 import { VirusScanService } from '../../security/virus-scan.service';
 import { DocumentChunkingService } from '../document-chunking/document-chunking.service';
 import { DocumentQualityService } from '../document-quality/document-quality.service';
-import { DocumentEventsService, DocumentEventType } from '../../events/document-events.service';
+import {
+  DocumentEventsService,
+  DocumentEventType,
+} from '../../events/document-events.service';
 import { MetricsService } from '../../observability/metrics.service';
 import { RetryPolicyService } from '../../queue/retry-policy.service';
 
@@ -64,7 +67,9 @@ export class DocumentProcessorService extends WorkerHost {
   // BullMQ entry point — wraps processDocument with a timeout guard
   // ─────────────────────────────────────────────────────────────────────────
 
-  async process(job: Job<{ documentId: string; organizationId?: string }>): Promise<void> {
+  async process(
+    job: Job<{ documentId: string; organizationId?: string }>,
+  ): Promise<void> {
     const { documentId, organizationId } = job.data;
     const startTime = Date.now();
 
@@ -90,9 +95,9 @@ export class DocumentProcessorService extends WorkerHost {
         this.cancellationService.cancel(documentId);
         await this.auditService.log({ documentId, action: 'DOCUMENT_TIMEOUT' });
         await this.safeMarkFailed(documentId, 'Processing timeout exceeded');
-        this.emitEvent(documentId, organizationId,  'DOCUMENT_FAILED', {
-            reason: 'timeout',
-          });
+        this.emitEvent(documentId, organizationId, 'DOCUMENT_FAILED', {
+          reason: 'timeout',
+        });
         this.metricsService.documentsFailedTotal.inc();
         throw new UnrecoverableError('Processing timeout exceeded');
       }
@@ -167,7 +172,7 @@ export class DocumentProcessorService extends WorkerHost {
             action: 'DOCUMENT_INFECTED',
             metadata: { virusScanResult: scanResult.virusScanResult },
           });
-          this.emitEvent(documentId, organizationId,  'DOCUMENT_INFECTED');
+          this.emitEvent(documentId, organizationId, 'DOCUMENT_INFECTED');
           await this.prisma.document.update({
             where: { id: documentId },
             data: {
@@ -248,10 +253,10 @@ export class DocumentProcessorService extends WorkerHost {
           pageCount,
         },
       });
-      this.emitEvent(documentId, organizationId,  'DOCUMENT_TEXT_EXTRACTED', {
-          ocrUsed,
-          pageCount,
-        });
+      this.emitEvent(documentId, organizationId, 'DOCUMENT_TEXT_EXTRACTED', {
+        ocrUsed,
+        pageCount,
+      });
 
       // ── Step 3: PII Detection & Redaction ──────────────────────────────
       let aiInputText: string;
@@ -270,9 +275,9 @@ export class DocumentProcessorService extends WorkerHost {
               piiTypes: [...new Set(entities.map((e) => e.type))],
             },
           });
-          this.emitEvent(documentId, organizationId,  'DOCUMENT_PII_DETECTED', {
-              piiEntityCount: entities.length,
-            });
+          this.emitEvent(documentId, organizationId, 'DOCUMENT_PII_DETECTED', {
+            piiEntityCount: entities.length,
+          });
 
           const redaction = await this.piiRedactionService.redact({
             text: extractedText,
@@ -377,9 +382,9 @@ export class DocumentProcessorService extends WorkerHost {
           aiInputMode,
         },
       });
-      this.emitEvent(documentId, organizationId,  'DOCUMENT_AI_STARTED', {
-          provider: aiProvider.name,
-        });
+      this.emitEvent(documentId, organizationId, 'DOCUMENT_AI_STARTED', {
+        provider: aiProvider.name,
+      });
       this.metricsService.providerRequestsTotal.inc({
         provider: aiProvider.name,
       });
@@ -466,9 +471,9 @@ export class DocumentProcessorService extends WorkerHost {
           fallbackUsed,
         },
       });
-      this.emitEvent(documentId, organizationId,  'DOCUMENT_AI_COMPLETED', {
-          confidence: metadata.confidence ?? 0,
-        });
+      this.emitEvent(documentId, organizationId, 'DOCUMENT_AI_COMPLETED', {
+        confidence: metadata.confidence ?? 0,
+      });
 
       // ── Step 6: Quality Score ───────────────────────────────────────────
       const qualityScore = this.documentQualityService.calculate({
@@ -535,10 +540,10 @@ export class DocumentProcessorService extends WorkerHost {
         processingDurationMs / 1000,
       );
 
-      this.emitEvent(documentId, organizationId,  'DOCUMENT_COMPLETED', {
-          qualityScore,
-          confidence: metadata.confidence ?? 0,
-        });
+      this.emitEvent(documentId, organizationId, 'DOCUMENT_COMPLETED', {
+        qualityScore,
+        confidence: metadata.confidence ?? 0,
+      });
 
       this.logger.log(
         `Successfully processed document ${documentId} (quality: ${qualityScore}, ${processingDurationMs} ms)`,
@@ -551,9 +556,9 @@ export class DocumentProcessorService extends WorkerHost {
       if (isAbort) {
         this.logger.warn(`Processing aborted for document ${documentId}`);
         await this.safeMarkFailed(documentId, 'Stopped by user');
-        this.emitEvent(documentId, organizationId,  'DOCUMENT_FAILED', {
-            reason: 'cancelled',
-          });
+        this.emitEvent(documentId, organizationId, 'DOCUMENT_FAILED', {
+          reason: 'cancelled',
+        });
         this.metricsService.documentsFailedTotal.inc();
         return;
       }
@@ -566,7 +571,7 @@ export class DocumentProcessorService extends WorkerHost {
         documentId,
         sanitizeAiError(error) || 'Unknown processing error',
       );
-      this.emitEvent(documentId, organizationId,  'DOCUMENT_FAILED');
+      this.emitEvent(documentId, organizationId, 'DOCUMENT_FAILED');
       this.metricsService.documentsFailedTotal.inc();
 
       if (isUnrecoverable) throw error; // already an UnrecoverableError, re-throw as-is
@@ -631,7 +636,14 @@ export class DocumentProcessorService extends WorkerHost {
     });
   }
 
-  private emitEvent(documentId: string, orgId: string | undefined, status: DocumentEventType, meta?: Record<string, any>) {
-    this.eventsService.emit(this.eventsService.buildEvent(documentId, status, meta, orgId));
+  private emitEvent(
+    documentId: string,
+    orgId: string | undefined,
+    status: DocumentEventType,
+    meta?: Record<string, any>,
+  ) {
+    this.eventsService.emit(
+      this.eventsService.buildEvent(documentId, status, meta, orgId),
+    );
   }
 }

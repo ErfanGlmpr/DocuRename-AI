@@ -23,10 +23,14 @@ import { OrganizationsModule } from './organizations/organizations.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
+import { ScheduleModule } from '@nestjs/schedule';
+import { MaintenanceModule } from './maintenance/maintenance.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
+    MaintenanceModule,
     CancellationModule,
     StorageModule,
     EventsModule,

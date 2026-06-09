@@ -1300,6 +1300,37 @@ Backend:  http://localhost:3001
 
 ---
 
+# Milestone 14 — Security Hardening (HttpOnly Cookies)
+
+## Ticket 14.1 — Silent Token Refresh & HttpOnly Cookies
+
+**Goal:** Enhance application security by moving refresh tokens from local storage / JSON responses to HttpOnly cookies, and implementing silent token rotation on the frontend.
+
+**Requirements:**
+
+* **Backend**:
+  * Use `cookie-parser` to parse cookies on incoming requests.
+  * Update `/auth/login`, `/auth/register`, and `/auth/switch-organization` endpoints to attach the `refresh_token` as an `HttpOnly`, `Secure` cookie, rather than returning it in the JSON body.
+  * Update `/auth/refresh` to extract the `refresh_token` from the incoming request cookies and attach a rotated cookie in the response.
+  * Update `/auth/logout` to clear the `refresh_token` cookie via `res.clearCookie`.
+  * Update existing unit tests (`auth.controller.spec.ts`) to mock the Express `Request` and `Response` objects properly.
+
+* **Frontend**:
+  * Set `credentials: 'include'` on all `fetch` requests inside `apiClient` to ensure HttpOnly cookies are automatically sent.
+  * Implement a 401 Interceptor inside `apiClient`: on receiving a `401 Unauthorized`, automatically call `/auth/refresh` in the background, save the new access token, and invisibly replay the original failed request.
+  * Use a promise lock to prevent redundant concurrent `/auth/refresh` requests when multiple calls fail simultaneously.
+  * Update Server-Sent Events (SSE) logic (`fetchSSE`) to manually trigger the `/auth/refresh` endpoint and reconnect to the stream upon receiving a 401.
+
+**Acceptance Criteria:**
+
+* The `refresh_token` is no longer returned in JSON or stored in `localStorage`.
+* Tokens rotate seamlessly and automatically on the frontend upon 401 expiration.
+* Postman collection is updated to rely on its internal cookie jar instead of request bodies for the refresh token.
+* Backend tests, build, and linting pass.
+* Frontend build and linting pass.
+
+---
+
 # Final Phase 5 Acceptance Checklist
 
 Phase 5 is complete only when all of the following are true:

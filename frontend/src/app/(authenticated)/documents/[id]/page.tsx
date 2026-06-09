@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
-import { getToken } from '@/lib/auth';
+import { getToken, setToken, clearToken } from '@/lib/auth';
 import { Document } from '@/lib/types';
 import { format } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,15 +54,35 @@ export default function DocumentDetailPage() {
       let retryCount = 0;
       while (isMounted) {
         try {
+          const currentToken = getToken();
+          if (!currentToken) break;
+
           const response = await fetch(`${baseUrl}/documents/${documentId}/events`, {
             method: 'GET',
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${currentToken}`,
               Accept: 'text/event-stream',
             },
           });
 
           if (!response.ok || !response.body) {
+            if (response.status === 401) {
+              try {
+                const refreshRes = await fetch(`${baseUrl}/auth/refresh`, {
+                  method: 'POST',
+                  credentials: 'include',
+                });
+                if (!refreshRes.ok) throw new Error('Refresh failed');
+                const data = await refreshRes.json();
+                setToken(data.accessToken);
+                continue;
+              } catch {
+                clearToken();
+                window.dispatchEvent(new Event('auth-unauthorized'));
+                break;
+              }
+            }
+             // Wait before reconnecting on server error
              await new Promise(r => setTimeout(r, 2000));
              continue;
           }

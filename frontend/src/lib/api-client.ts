@@ -1,4 +1,4 @@
-import { getToken, clearToken } from './auth';
+import { getToken, setToken, clearToken } from './auth';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 
@@ -13,9 +13,11 @@ export class ApiError extends Error {
   }
 }
 
+let refreshTokenPromise: Promise<string | null> | null = null;
+
 export async function apiClient<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit & { _retry?: boolean } = {}
 ): Promise<T> {
   const token = getToken();
   
@@ -29,6 +31,8 @@ export async function apiClient<T>(
     headers.set('Content-Type', 'application/json');
   }
 
+  options.credentials = 'include';
+
   const url = `${BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
   const response = await fetch(url, {
@@ -36,10 +40,31 @@ export async function apiClient<T>(
     headers,
   });
 
-  if (response.status === 401) {
+  if (response.status === 401 && !options._retry) {
+    if (!refreshTokenPromise) {
+      refreshTokenPromise = fetch(`${BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+        .then(async (res) => {
+          if (!res.ok) throw new Error('Refresh failed');
+          const data = await res.json();
+          setToken(data.accessToken);
+          return data.accessToken;
+        })
+        .catch(() => null)
+        .finally(() => {
+          refreshTokenPromise = null;
+        });
+    }
+
+    const newAccessToken = await refreshTokenPromise;
+    if (newAccessToken) {
+      return apiClient<T>(endpoint, { ...options, _retry: true });
+    }
+
     clearToken();
     if (typeof window !== 'undefined') {
-      // Dispatch event to allow UI layer to handle redirect to login
       window.dispatchEvent(new Event('auth-unauthorized'));
     }
   }
