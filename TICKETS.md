@@ -1259,44 +1259,55 @@ Add or update requests for:
 
 ---
 
-# Milestone 13 — Docker Compose
+# Milestone 13 — Docker Compose & Infrastructure
 
-## Ticket 13.1 — Add Frontend to Docker Compose
+## Ticket 13.1 — Full Stack Containerization
 
-**Goal:** Make full-stack local startup work.
+**Goal:** Provide a seamless, unified local startup and production-ready configuration.
 
-Update `docker-compose.yml` to include:
+Update infrastructure to include Dockerfiles for production standalone builds and orchestrate them via `docker-compose.yml`:
 
-* frontend
-* backend API
-* backend worker
+* frontend (Next.js)
+* backend API (NestJS)
 * postgres
 * redis
 * minio
 * ollama
 * clamav
-* OCR sidecar if already used
+* OCR sidecar
 
 Expected local URLs:
 
 ```txt
-Frontend: http://localhost:3000
-Backend:  http://localhost:3001
+Frontend: http://localhost:3001
+Backend:  http://localhost:3000
 ```
 
 **Requirements:**
 
-* Frontend gets `NEXT_PUBLIC_API_BASE_URL`.
-* Backend gets `CORS_ORIGIN=http://localhost:3000`.
-* Existing backend worker and infrastructure continue to work.
-* Swagger remains available if currently configured.
+* Frontend builds via Next.js standalone output to minimize image size.
+* Backend removes destructive database commands (e.g., `db push --accept-data-loss`) from automated startup scripts to prevent silent data wipes.
+* Environment variables load correctly inside containers via `env_file`.
+* Frontend connects to `NEXT_PUBLIC_API_BASE_URL=http://localhost:3000`.
+* Backend enforces `CORS_ORIGIN=http://localhost:3001`.
+
+## Ticket 13.2 — Developer Experience (Local Overrides)
+
+**Goal:** Enable hot-reloading and host-source mounting without polluting the production compose file.
+
+**Requirements:**
+* Introduce the "Override" pattern with `docker-compose.override.example.yml`.
+* Developers can map `./frontend` and `./backend` host volumes to `/app`.
+* Use anonymous volumes (`/app/node_modules`) to avoid cross-OS dependency conflicts (e.g., Windows native modules overwriting Linux Alpine ones).
+* Override container commands to use `npm run dev` and `npm run start:dev` for live reloading and verbose logging.
 
 **Acceptance Criteria:**
 
-* `docker compose up --build` starts the full stack.
-* Frontend can reach backend.
-* Backend can reach Postgres, Redis, MinIO, Ollama, ClamAV, and OCR services as before.
-* Existing processing pipeline still works.
+* `docker compose up --build` gracefully starts the full stack in production mode.
+* When using the override file, developers get full hot-reloading.
+* Frontend can reach backend via exposed ports.
+* Backend successfully connects to all companion containers (Postgres, Redis, MinIO, Ollama, ClamAV, OCR).
+* Existing Phase 5 authentication and document processing pipeline still works seamlessly inside Docker.
 
 ---
 
