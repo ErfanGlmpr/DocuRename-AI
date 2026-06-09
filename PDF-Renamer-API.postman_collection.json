@@ -757,6 +757,28 @@
           }
         }
       ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Get Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/overview",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "overview"
+              ]
+            }
+          }
+        }
+      ]
     }
   ],
   "variable": [

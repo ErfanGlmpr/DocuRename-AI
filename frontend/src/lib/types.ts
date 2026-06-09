@@ -3,6 +3,8 @@ export interface User {
   email: string;
   name?: string;
   organizationId: string;
+  organizationName: string;
+  role: string;
 }
 
 export interface AuthResponse {
@@ -63,4 +65,14 @@ export interface Document {
   processingDurationMs: number | null;
   virusScanned: boolean;
   virusScanResult: string | null;
+}
+
+export interface AdminOverview {
+  documentCountsByStatus: Record<string, number>;
+  failedDocumentCount: number;
+  processingDocumentCount: number;
+  averageProcessingDuration: number;
+  providerUsageCounts: Record<string, number>;
+  ocrUsageCount: number;
+  virusScanFailures: number;
 }

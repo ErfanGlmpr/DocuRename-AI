@@ -20,6 +20,7 @@ import { HealthModule } from './health/health.module';
 // Phase 5
 import { AuthModule } from './auth/auth.module';
 import { OrganizationsModule } from './organizations/organizations.module';
+import { AdminModule } from './admin/admin.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
@@ -49,6 +50,7 @@ import { MaintenanceModule } from './maintenance/maintenance.module';
     // Phase 5
     AuthModule,
     OrganizationsModule,
+    AdminModule,
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({

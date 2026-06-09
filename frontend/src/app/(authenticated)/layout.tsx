@@ -78,6 +78,11 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
               <Link href="/settings" className={`text-sm font-medium transition-colors hover:text-black dark:hover:text-white ${pathname === '/settings' ? 'text-black dark:text-white font-semibold' : 'text-zinc-500'}`}>
                 Settings
               </Link>
+              {(user.role === 'OWNER' || user.role === 'ADMIN') && (
+                <Link href="/admin" className={`text-sm font-medium transition-colors hover:text-black dark:hover:text-white ${pathname === '/admin' ? 'text-black dark:text-white font-semibold' : 'text-zinc-500'}`}>
+                  Admin Panel
+                </Link>
+              )}
             </nav>
           </div>
           <div className="flex items-center gap-4">
