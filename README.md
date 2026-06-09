@@ -242,26 +242,25 @@ docker compose build ocr-sidecar
 
 ---
 
-## Phase 5: SaaS Foundation & Multi-Tenancy (New!)
+## Phase 5: SaaS Foundation, Frontend UI & Multi-Tenancy (New!)
 
-Phase 5 introduces a full SaaS foundation:
-- **Authentication**: JWT-based auth (Register, Login, Refresh, Logout).
-- **Organization Management**: Users can create organizations, invite members, and seamlessly switch active contexts (`POST /auth/switch-organization`).
+Phase 5 introduces a full SaaS foundation and a React/Next.js Frontend:
+- **Authentication**: JWT-based auth (Register, Login, Refresh, Logout) using `HttpOnly` cookies.
+- **Organization Management**: Users can create organizations, invite members, and seamlessly switch active contexts.
 - **Tenant Isolation**: Documents, AI evaluation runs, and audit logs are strictly scoped to organizations.
-- **Role-Based Access Control**: Organization `OWNER`, `ADMIN`, and `MEMBER` roles.
-- **API Protection**: JWT guards on all sensitive endpoints.
+- **Frontend Dashboard**: A responsive Next.js frontend with drag-and-drop document uploads, real-time status updates via SSE, and detailed document views.
+- **API Hardening**: JWT guards on all sensitive endpoints, payload validation pipes, and robust rate limiting.
+- **Data Retention**: Background cron jobs automatically clean up orphaned objects in MinIO and delete failed documents older than a configured threshold.
+- **Multi-Instance SSE**: Support for Redis as a transport layer (`EVENT_TRANSPORT=redis`) to broadcast SSE events across multiple backend instances.
 
 ---
 
 ## Known Limitations
-- **No frontend UI** — API only (Frontend planned for late Phase 5 / Phase 6).
 - **OCR sidecar first-build time**: The Docker image downloads Tesseract language packs on first build (~200 MB).
 - **ClamAV cold start**: First startup downloads virus definitions (~300 MB). Subsequent restarts are fast.
-- **SSE**: Uses in-process RxJS Subject. If running multiple API instances behind a load balancer, clients should connect to the same instance (sticky sessions) or use Redis pub/sub (future work).
 
 ## Future Roadmap
-- Frontend React UI
 - Semantic search with vector embeddings
 - Batch processing API
 - Webhook callbacks for document events
-- Redis pub/sub for multi-instance SSE
+- Stripe billing integration
