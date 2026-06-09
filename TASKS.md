@@ -290,6 +290,73 @@ Track each task below. Check the box **only** when:
 
 ---
 
+## Milestone 11 — Tests
+
+### Ticket 11.1 — Add Auth Tests
+- [x] Register creates user and organization.
+- [x] Register creates OWNER membership.
+- [x] Login returns token.
+- [x] Invalid password fails safely.
+- [x] Protected route requires JWT.
+- [x] `/auth/me` returns safe user object.
+- [x] Fix E2E testing worker leaks (`forceExit` + `--runInBand`).
+
+### Ticket 11.2 — Add Authorization and Tenant Isolation Tests
+- [x] User cannot access another organization’s document.
+- [x] Document list only returns current organization documents.
+- [x] Document detail is scoped.
+- [x] Download is scoped.
+- [x] Retry is scoped.
+- [x] Cancel is scoped.
+- [x] Evaluation is scoped.
+
+### Ticket 11.3 — Add Upload Validation Tests
+- [x] Rejects non-PDF.
+- [x] Rejects bad magic bytes.
+- [x] Rejects oversized file.
+- [x] Rejects too many files.
+- [x] Rejects empty file.
+- [x] Rejects oversized total upload.
+- [x] Does not enqueue invalid files.
+- [x] Does not store invalid files.
+
+### Ticket 11.4 — Add API Hardening Tests
+- [x] Validation pipe rejects unknown fields.
+- [x] Unauthenticated protected route fails.
+- [x] Rate limiter works.
+- [x] Metrics protection works when `METRICS_PUBLIC=false`.
+
+### Ticket 11.5 — Add Frontend Tests
+- [x] Login form renders and submits.
+- [x] Register form renders and submits.
+- [x] Upload flow renders.
+- [x] Documents list renders statuses.
+- [x] Document detail hides sensitive fields.
+- [x] API client attaches auth token.
+
+---
+
+## Milestone 12 — Documentation and Developer Experience
+
+### Ticket 12.1 — Update README for Phase 5
+- [ ] Add a Phase 5 section covering auth, orgs, dashboard, protected APIs, validation, rate limiting, data retention, SSE, env vars.
+
+### Ticket 12.2 — Update Environment Examples
+- [ ] Update backend `/.env.example`.
+- [ ] Update frontend `/.env.example`.
+
+### Ticket 12.3 — Update Postman Collection
+- [ ] Add auth endpoints and protected routes.
+
+---
+
+## Milestone 13 — Docker Compose
+
+### Ticket 13.1 — Add Frontend to Docker Compose
+- [ ] Update `docker-compose.yml` to include frontend.
+
+---
+
 ## Milestone 14 — Security Hardening (HttpOnly Cookies)
 
 ### Ticket 14.1 — Silent Token Refresh & HttpOnly Cookies

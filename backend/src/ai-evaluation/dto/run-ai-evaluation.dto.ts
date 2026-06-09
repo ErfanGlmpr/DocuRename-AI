@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RunAiEvaluationDto {
@@ -24,6 +24,7 @@ export class RunAiEvaluationDto {
     example: 'gpt-4o-mini',
     required: false,
   })
+  @IsOptional()
   @IsString()
   model?: string;
 }
