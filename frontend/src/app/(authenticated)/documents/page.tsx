@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
-import { getToken } from '@/lib/auth';
+import { getToken, clearToken } from '@/lib/auth';
 import type { Document } from '@/lib/types';
 import { UploadZone } from '@/components/upload-zone';
 import {
@@ -70,15 +70,24 @@ export default function DocumentsPage() {
       let retryCount = 0;
       while (isMounted) {
         try {
+          // Always get the freshest token from cookies in case it was refreshed by Axios
+          const currentToken = getToken();
+          if (!currentToken) break;
+
           const response = await fetch(`${baseUrl}/documents/events`, {
             method: 'GET',
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${currentToken}`,
               Accept: 'text/event-stream',
             },
           });
 
           if (!response.ok || !response.body) {
+            if (response.status === 401) {
+              clearToken();
+              window.dispatchEvent(new Event('auth-unauthorized'));
+              break;
+            }
              // Wait before reconnecting on server error
              await new Promise(r => setTimeout(r, 2000));
              continue;

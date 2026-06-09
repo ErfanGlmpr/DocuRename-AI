@@ -239,3 +239,21 @@ Track each task below. Check the box **only** when:
 - [x] Display metadata without raw text/PII
 - [x] Build + lint pass (frontend)
 
+### Ticket 6.4 — Add Frontend Live Updates
+- [x] Use existing SSE endpoints if available
+- [x] Send auth token safely
+- [x] Polling fallback implementation
+- [x] Events are organization-scoped
+- [x] Document status updates without manual refresh
+
+---
+
+## Milestone 8 — Maintenance and Retention Groundwork
+
+### Ticket 8.1 — Add Maintenance Module
+- [x] Create `maintenance.module.ts`, `cleanup.service.ts`, `retention-policy.service.ts`
+- [x] Add env config (`CLEANUP_ENABLED`, `FAILED_DOCUMENT_RETENTION_DAYS`, `AI_EVALUATION_RETENTION_DAYS`, `DELETE_ORPHANED_OBJECTS`)
+- [x] Scheduled cleanup job using `@nestjs/schedule`
+- [x] Delete stale failed documents older than configured days
+- [x] Delete old AI evaluation runs
+- [x] Detect/delete orphaned storage objects
