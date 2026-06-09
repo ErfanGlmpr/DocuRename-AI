@@ -339,14 +339,14 @@ Track each task below. Check the box **only** when:
 ## Milestone 12 — Documentation and Developer Experience
 
 ### Ticket 12.1 — Update README for Phase 5
-- [ ] Add a Phase 5 section covering auth, orgs, dashboard, protected APIs, validation, rate limiting, data retention, SSE, env vars.
+- [x] Add a Phase 5 section covering auth, orgs, dashboard, protected APIs, validation, rate limiting, data retention, SSE, env vars.
 
 ### Ticket 12.2 — Update Environment Examples
-- [ ] Update backend `/.env.example`.
-- [ ] Update frontend `/.env.example`.
+- [x] Update backend `/.env.example`.
+- [x] Update frontend `/.env.example`.
 
 ### Ticket 12.3 — Update Postman Collection
-- [ ] Add auth endpoints and protected routes.
+- [x] Add auth endpoints and protected routes.
 
 ---
 
