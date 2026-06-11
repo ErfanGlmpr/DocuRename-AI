@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 describe('AiEvaluationService', () => {
   let service: AiEvaluationService;
   let mockPrisma: {
-    document: { findUnique: jest.Mock };
+    document: { findFirst: jest.Mock };
     aiEvaluationRun: {
       create: jest.Mock;
       update: jest.Mock;
@@ -37,7 +37,7 @@ describe('AiEvaluationService', () => {
 
   beforeEach(() => {
     mockPrisma = {
-      document: { findUnique: jest.fn() },
+      document: { findFirst: jest.fn() },
       aiEvaluationRun: {
         create: jest.fn(),
         update: jest.fn(),
@@ -81,7 +81,7 @@ describe('AiEvaluationService', () => {
 
   describe('runEvaluation', () => {
     it('should use redactedText when privacy is enabled', async () => {
-      mockPrisma.document.findUnique.mockResolvedValue({
+      mockPrisma.document.findFirst.mockResolvedValue({
         id: 'doc-1',
         originalName: 'test.pdf',
         redactedText: 'safe-text',
@@ -107,7 +107,7 @@ describe('AiEvaluationService', () => {
     });
 
     it('should throw if no redacted text is available and privacy is enabled for cloud provider', async () => {
-      mockPrisma.document.findUnique.mockResolvedValue({
+      mockPrisma.document.findFirst.mockResolvedValue({
         id: 'doc-1',
         originalName: 'test.pdf',
         redactedText: null, // missing!
@@ -120,7 +120,7 @@ describe('AiEvaluationService', () => {
     });
 
     it('should save failed runs without throwing', async () => {
-      mockPrisma.document.findUnique.mockResolvedValue({
+      mockPrisma.document.findFirst.mockResolvedValue({
         id: 'doc-1',
         originalName: 'test.pdf',
         redactedText: 'safe-text',

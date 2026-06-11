@@ -380,3 +380,61 @@ Track each task below. Check the box **only** when:
 - [x] Frontend: Implement promise lock to prevent redundant concurrent refresh requests.
 - [x] Frontend: Update SSE (`fetchSSE`) logic to handle 401s and rotate token.
 - [x] Build + test + lint pass (backend and frontend)
+
+---
+
+## Milestone 15 — Phase 5 Final Hardening Tickets
+
+### Ticket 15 — Fix Tenant Isolation for Stuck Document Endpoints
+- [x] Endpoints require authenticated user and scope results/actions to `currentUser.organizationId`.
+- [x] `GET /documents/stuck` only returns stuck documents from the authenticated user’s organization.
+- [x] `POST /documents/stuck/reconcile` only reconciles stuck documents from the authenticated user’s organization.
+- [x] Added tests proving tenant isolation.
+
+### Ticket 16 — Enforce Organization Scoping Directly in Document Queries
+- [x] User-accessible document queries are organization-scoped at the database query level.
+- [x] Cross-organization access returns safe error.
+- [x] Added tests verifying user cannot access other organizations' documents by ID.
+
+### Ticket 17 — Fix Upload Validation Error Response Shape
+- [x] Upload validation returns predictable, frontend-friendly structured errors per file.
+- [x] The whole request is rejected if any file is invalid.
+- [x] Invalid files are not stored or enqueued.
+- [x] Added tests for structured error responses across all validation scenarios.
+
+### Ticket 18 — Remove Legacy Silent Skip Behavior from Upload Service
+- [x] Upload service does not silently skip invalid files.
+- [x] Invalid files cause a clear error.
+- [x] No invalid files are stored or queued.
+- [x] Valid multi-PDF upload still works.
+- [x] Added unit tests for service validation behavior.
+
+### Ticket 19 — Harden CORS Fallback Behavior
+- [x] Production does not start with unsafe missing CORS configuration.
+- [x] Local development still works with frontend on `http://localhost:3000`.
+- [x] Credentialed requests only work from allowed origins.
+- [x] README and `.env.example` document the behavior.
+
+### Ticket 20 — Review and Update Postman Collection
+- [x] Collection includes all current auth endpoints.
+- [x] Collection includes protected document/upload endpoints.
+- [x] Collection includes updated stuck-document behavior.
+- [x] Collection reflects structured upload validation response where relevant.
+- [x] Related endpoints are grouped together into cleanly named folders.
+- [x] Request names are clear.
+- [x] No real secrets are committed.
+
+### Ticket 21 — Add/Update Final Security Regression Tests
+- [x] Auth and Protection tests added.
+- [x] Tenant Isolation tests added for stuck documents.
+- [x] Upload Validation tests verified.
+- [x] Sensitive Data tests added to ensure document details don't expose raw/redacted text.
+- [x] Frontend tests verified to not render sensitive fields.
+
+### Ticket 22 — Final Verification and Documentation Pass
+- [x] Backend build, lint, tests pass.
+- [x] Frontend build, lint, tests pass.
+- [x] Prisma validates, if schema changed.
+- [x] Postman collection is updated.
+- [x] README and env examples are accurate.
+- [x] No known build/lint/test errors remain.

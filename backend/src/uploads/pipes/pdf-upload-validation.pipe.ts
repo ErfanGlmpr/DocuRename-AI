@@ -11,7 +11,12 @@ export class PdfUploadValidationPipe implements PipeTransform<
 
   transform(files: Express.Multer.File[]): Express.Multer.File[] {
     if (!files || files.length === 0) {
-      throw new BadRequestException('At least one file must be uploaded');
+      throw new BadRequestException({
+        message: 'Upload validation failed',
+        errors: [{ reason: 'At least one file must be uploaded' }],
+        error: 'Bad Request',
+        statusCode: 400,
+      });
     }
 
     const maxFiles = parseInt(
@@ -28,16 +33,21 @@ export class PdfUploadValidationPipe implements PipeTransform<
     );
 
     if (files.length > maxFiles) {
-      throw new BadRequestException(
-        `Exceeded maximum of ${maxFiles} files per upload`,
-      );
+      throw new BadRequestException({
+        message: 'Upload validation failed',
+        errors: [
+          { reason: `Exceeded maximum of ${maxFiles} files per upload` },
+        ],
+        error: 'Bad Request',
+        statusCode: 400,
+      });
     }
 
     const maxTotalSizeBytes = maxTotalSizeMB * 1024 * 1024;
     const maxSizeBytes = maxSizeMB * 1024 * 1024;
 
     let totalSize = 0;
-    const messages: string[] = [];
+    const errors: Array<{ filename?: string; reason: string }> = [];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -71,19 +81,24 @@ export class PdfUploadValidationPipe implements PipeTransform<
 
       if (fileErrors.length > 0) {
         const name = file.originalname || `file_${i}`;
-        fileErrors.forEach((err) => messages.push(`${name}: ${err}`));
+        fileErrors.forEach((err) =>
+          errors.push({ filename: name, reason: err }),
+        );
       }
 
       totalSize += file.size;
     }
 
     if (totalSize > maxTotalSizeBytes) {
-      messages.push(`Total upload size exceeds ${maxTotalSizeMB}MB limit`);
+      errors.push({
+        reason: `Total upload size exceeds ${maxTotalSizeMB}MB limit`,
+      });
     }
 
-    if (messages.length > 0) {
+    if (errors.length > 0) {
       throw new BadRequestException({
-        message: messages,
+        message: 'Upload validation failed',
+        errors: errors,
         error: 'Bad Request',
         statusCode: 400,
       });

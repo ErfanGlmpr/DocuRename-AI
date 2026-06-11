@@ -59,10 +59,12 @@ describe('DocumentsController (Unit - Stuck Detection)', () => {
 
       mockDocumentsService.findStuck.mockResolvedValue(mockResult);
 
-      const result = await controller.findStuck();
+      const result = await controller.findStuck(MOCK_USER);
 
       expect(result).toEqual(mockResult);
-      expect(mockDocumentsService.findStuck).toHaveBeenCalled();
+      expect(mockDocumentsService.findStuck).toHaveBeenCalledWith(
+        MOCK_USER.organizationId,
+      );
     });
   });
 
@@ -76,10 +78,12 @@ describe('DocumentsController (Unit - Stuck Detection)', () => {
 
       mockDocumentsService.reconcileStuck.mockResolvedValue(mockResult);
 
-      const result = await controller.reconcileStuck();
+      const result = await controller.reconcileStuck(MOCK_USER);
 
       expect(result).toEqual(mockResult);
-      expect(mockDocumentsService.reconcileStuck).toHaveBeenCalled();
+      expect(mockDocumentsService.reconcileStuck).toHaveBeenCalledWith(
+        MOCK_USER.organizationId,
+      );
     });
   });
 
@@ -90,6 +94,52 @@ describe('DocumentsController (Unit - Stuck Detection)', () => {
       await controller.findAll(MOCK_USER);
 
       expect(mockDocumentsService.findAll).toHaveBeenCalledWith('org-1');
+    });
+  });
+
+  describe('GET /:id', () => {
+    it('should pass organizationId to findOnePublic', async () => {
+      mockDocumentsService.findOnePublic.mockResolvedValue({});
+      await controller.findOne('doc-1', MOCK_USER);
+      expect(mockDocumentsService.findOnePublic).toHaveBeenCalledWith(
+        'doc-1',
+        'org-1',
+      );
+    });
+  });
+
+  describe('GET /:id/download', () => {
+    it('should pass organizationId to getDownloadUrl', async () => {
+      mockDocumentsService.getDownloadUrl.mockResolvedValue({
+        url: 'http://test',
+      });
+      await controller.getDownloadUrl('doc-1', MOCK_USER);
+      expect(mockDocumentsService.getDownloadUrl).toHaveBeenCalledWith(
+        'doc-1',
+        'org-1',
+      );
+    });
+  });
+
+  describe('POST /:id/retry', () => {
+    it('should pass organizationId to retryProcessing', async () => {
+      mockDocumentsService.retryProcessing.mockResolvedValue({ message: 'ok' });
+      await controller.retryProcessing('doc-1', MOCK_USER);
+      expect(mockDocumentsService.retryProcessing).toHaveBeenCalledWith(
+        'doc-1',
+        'org-1',
+      );
+    });
+  });
+
+  describe('POST /:id/cancel', () => {
+    it('should pass organizationId to cancel', async () => {
+      mockDocumentsService.cancel.mockResolvedValue({ message: 'ok' });
+      await controller.cancel('doc-1', MOCK_USER);
+      expect(mockDocumentsService.cancel).toHaveBeenCalledWith(
+        'doc-1',
+        'org-1',
+      );
     });
   });
 });

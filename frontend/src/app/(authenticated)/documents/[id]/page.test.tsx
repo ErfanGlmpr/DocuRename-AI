@@ -64,6 +64,32 @@ describe('DocumentDetailPage', () => {
     expect(screen.getByText('INV-001')).toBeInTheDocument();
   });
 
+  it('does not render sensitive fields even if present', async () => {
+    const mockDocumentWithSensitiveData = {
+      id: '1',
+      originalName: 'sensitive.pdf',
+      finalName: 'sensitive.pdf',
+      status: 'COMPLETED',
+      createdAt: new Date().toISOString(),
+      rawText: 'SECRET_RAW_TEXT',
+      redactedText: 'SECRET_REDACTED_TEXT',
+      piiTokenMapEncrypted: 'SECRET_TOKEN_MAP',
+    };
+
+    vi.mocked(apiClient).mockResolvedValue(mockDocumentWithSensitiveData);
+
+    renderWithProviders(<DocumentDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('sensitive.pdf')).toBeInTheDocument();
+    });
+
+    // Explicitly check that sensitive fields are not rendered anywhere
+    expect(screen.queryByText('SECRET_RAW_TEXT')).not.toBeInTheDocument();
+    expect(screen.queryByText('SECRET_REDACTED_TEXT')).not.toBeInTheDocument();
+    expect(screen.queryByText('SECRET_TOKEN_MAP')).not.toBeInTheDocument();
+  });
+
   it('renders error state on API failure', async () => {
     vi.mocked(apiClient).mockRejectedValue(new Error('Failed to fetch'));
 

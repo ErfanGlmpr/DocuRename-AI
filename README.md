@@ -32,6 +32,15 @@ Phase 2 adds a robust privacy pipeline before data is sent to the AI:
 
 ## Local Setup Instructions
 
+### Quick Start (Automated)
+The easiest way to get started is by using the automated setup script. It will configure your environment variables, start the Docker containers, run database migrations, and pull the required AI models.
+
+```bash
+./setup.sh
+```
+
+### Manual Setup
+
 ### Prerequisites
 - Node.js 18+
 - Docker and Docker Compose
@@ -81,15 +90,32 @@ This command will automatically build and start the entire stack:
 > - The **OCR Sidecar** needs to download Tesseract language packs during its first build. To verify or build it specifically, run `docker compose build ocr-sidecar`.
 > - **ClamAV** will take 5-10 minutes on its first run to download its database of signature definitions. Until completed, virus scanning requests will fail/log warnings if enabled.
 
-### 4. Pull the Ollama Model
+### 4. Apply Database Migrations
+Once the database container is running, you must apply the Prisma schema migrations to create the required tables. This is especially important after wiping your database data.
+```bash
+docker compose exec backend npx prisma migrate deploy
+```
+
+### 5. Pull the Ollama Model
 The Ollama container starts empty; you must pull the default model manually (this is persistent, you only do this once):
 ```bash
 docker exec -it pdf_ai_ollama ollama pull llama3.1:8b
 ```
 
-### 5. Access the Application
+### 6. Access the Application
 - **Frontend Dashboard**: [http://localhost:3001](http://localhost:3001)
 - **Backend API Docs**: [http://localhost:3000/api](http://localhost:3000/api)
+
+---
+
+## Syncing Between Workstations
+When working between a PC and a Mac, you can keep your environments in sync using the provided update script. This script automatically pulls the latest code, installs any new NPM dependencies, rebuilds your Docker containers, and applies any pending database migrations.
+
+Just run this when you switch machines:
+```bash
+./update.sh
+```
+*Note: Ensure you commit and push your code (including the `prisma/migrations` folder) before switching machines.*
 
 ---
 
@@ -248,7 +274,7 @@ Phase 5 introduces a full SaaS foundation and a React/Next.js Frontend:
 - **Organization Management**: Users can create organizations, invite members, and seamlessly switch active contexts.
 - **Tenant Isolation**: Documents, AI evaluation runs, and audit logs are strictly scoped to organizations.
 - **Frontend Dashboard**: A responsive Next.js frontend with drag-and-drop document uploads, real-time status updates via SSE, and detailed document views.
-- **API Hardening**: JWT guards on all sensitive endpoints, payload validation pipes, and robust rate limiting.
+- **API Hardening**: JWT guards on all sensitive endpoints, payload validation pipes, robust rate limiting, and safe-by-default CORS handling (`CORS_ORIGIN` is required in production, defaults to `http://localhost:3000,http://localhost:3001` locally).
 - **Data Retention**: Background cron jobs automatically clean up orphaned objects in MinIO and delete failed documents older than a configured threshold.
 - **Multi-Instance SSE**: Support for Redis as a transport layer (`EVENT_TRANSPORT=redis`) to broadcast SSE events across multiple backend instances.
 

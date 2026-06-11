@@ -96,8 +96,14 @@ describe('Upload Validation (e2e)', () => {
       })
       .expect(400);
 
-    const resBody = res.body as { message: string[] };
-    expect(resBody.message[0]).toContain('Invalid extension. Expected .pdf');
+    const resBody = res.body as {
+      message: string;
+      errors: { filename?: string; reason: string }[];
+    };
+    expect(resBody.message).toBe('Upload validation failed');
+    expect(resBody.errors[0].reason).toContain(
+      'Invalid extension. Expected .pdf',
+    );
   });
 
   it('Rejects non-PDF by MIME type', async () => {
@@ -111,8 +117,12 @@ describe('Upload Validation (e2e)', () => {
       })
       .expect(400);
 
-    const resBody = res.body as { message: string[] };
-    expect(resBody.message[0]).toContain('Invalid MIME type');
+    const resBody = res.body as {
+      message: string;
+      errors: { filename?: string; reason: string }[];
+    };
+    expect(resBody.message).toBe('Upload validation failed');
+    expect(resBody.errors[0].reason).toContain('Invalid MIME type');
   });
 
   it('Rejects bad magic bytes', async () => {
@@ -126,8 +136,12 @@ describe('Upload Validation (e2e)', () => {
       })
       .expect(400);
 
-    const resBody = res.body as { message: string[] };
-    expect(resBody.message[0]).toContain('Invalid file signature');
+    const resBody = res.body as {
+      message: string;
+      errors: { filename?: string; reason: string }[];
+    };
+    expect(resBody.message).toBe('Upload validation failed');
+    expect(resBody.errors[0].reason).toContain('Invalid file signature');
   });
 
   it('Rejects empty file', async () => {
@@ -141,8 +155,12 @@ describe('Upload Validation (e2e)', () => {
       })
       .expect(400);
 
-    const resBody = res.body as { message: string[] };
-    expect(resBody.message[0]).toContain('File is empty');
+    const resBody = res.body as {
+      message: string;
+      errors: { filename?: string; reason: string }[];
+    };
+    expect(resBody.message).toBe('Upload validation failed');
+    expect(resBody.errors[0].reason).toContain('File is empty');
   });
 
   it('Rejects missing files array completely', async () => {
@@ -151,8 +169,14 @@ describe('Upload Validation (e2e)', () => {
       .set('Authorization', `Bearer ${token}`)
       .expect(400);
 
-    const resBody = res.body as { message: string };
-    expect(resBody.message).toContain('At least one file must be uploaded');
+    const resBody = res.body as {
+      message: string;
+      errors: { filename?: string; reason: string }[];
+    };
+    expect(resBody.message).toBe('Upload validation failed');
+    expect(resBody.errors[0].reason).toContain(
+      'At least one file must be uploaded',
+    );
   });
 
   it('Rejects too many files', async () => {
@@ -170,8 +194,12 @@ describe('Upload Validation (e2e)', () => {
     }
 
     const res = await req.expect(400);
-    const resBody = res.body as { message: string };
-    expect(resBody.message).toContain('Exceeded maximum of 10 files');
+    const resBody = res.body as {
+      message: string;
+      errors: { filename?: string; reason: string }[];
+    };
+    expect(resBody.message).toBe('Upload validation failed');
+    expect(resBody.errors[0].reason).toContain('Exceeded maximum of 10 files');
   });
 
   it('Rejects oversized file', async () => {
@@ -193,8 +221,14 @@ describe('Upload Validation (e2e)', () => {
       })
       .expect(400);
 
-    const resBody = res.body as { message: string[] };
-    const err = resBody.message.find((m) => m.includes('exceeds maximum size'));
+    const resBody = res.body as {
+      message: string;
+      errors: { filename?: string; reason: string }[];
+    };
+    expect(resBody.message).toBe('Upload validation failed');
+    const err = resBody.errors.find((e) =>
+      e.reason.includes('exceeds maximum size'),
+    );
     expect(err).toBeDefined();
   });
 
@@ -216,10 +250,48 @@ describe('Upload Validation (e2e)', () => {
     }
 
     const res = await req.expect(400);
-    const resBody = res.body as { message: string[] };
-    const err = resBody.message.find((m) =>
-      m.includes('Total upload size exceeds'),
+    const resBody = res.body as {
+      message: string;
+      errors: { filename?: string; reason: string }[];
+    };
+    expect(resBody.message).toBe('Upload validation failed');
+    const err = resBody.errors.find((e) =>
+      e.reason.includes('Total upload size exceeds'),
     );
     expect(err).toBeDefined();
+  });
+
+  it('Rejects mixed valid and invalid files (entire request fails)', async () => {
+    const validPdfBuffer = Buffer.from('%PDF-1.4\n%Valid mock PDF data');
+    const invalidBuffer = Buffer.from('Just text data');
+
+    const req = request(app.getHttpServer())
+      .post('/documents/upload')
+      .set('Authorization', `Bearer ${token}`)
+      .attach('files', validPdfBuffer, {
+        filename: 'valid1.pdf',
+        contentType: 'application/pdf',
+      })
+      .attach('files', invalidBuffer, {
+        filename: 'invalid.txt',
+        contentType: 'text/plain',
+      });
+
+    const res = await req.expect(400);
+    const resBody = res.body as {
+      message: string;
+      errors: { filename?: string; reason: string }[];
+    };
+    expect(resBody.message).toBe('Upload validation failed');
+    expect(resBody.errors.length).toBeGreaterThan(0);
+
+    // Check that it only lists errors for the invalid file
+    const invalidError = resBody.errors.find(
+      (e) => e.filename === 'invalid.txt',
+    );
+    expect(invalidError).toBeDefined();
+
+    const validError = resBody.errors.find((e) => e.filename === 'valid1.pdf');
+    expect(validError).toBeUndefined();
   });
 });
