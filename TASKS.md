@@ -414,3 +414,12 @@ Track each task below. Check the box **only** when:
 - [x] Local development still works with frontend on `http://localhost:3000`.
 - [x] Credentialed requests only work from allowed origins.
 - [x] README and `.env.example` document the behavior.
+
+### Ticket 20 — Review and Update Postman Collection
+- [x] Collection includes all current auth endpoints.
+- [x] Collection includes protected document/upload endpoints.
+- [x] Collection includes updated stuck-document behavior.
+- [x] Collection reflects structured upload validation response where relevant.
+- [x] Related endpoints are grouped together into cleanly named folders.
+- [x] Request names are clear.
+- [x] No real secrets are committed.

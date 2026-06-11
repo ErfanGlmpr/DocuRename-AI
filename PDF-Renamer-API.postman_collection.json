@@ -19,7 +19,7 @@
       "name": "Auth",
       "item": [
         {
-          "name": "Register",
+          "name": "Register User",
           "event": [
             {
               "listen": "test",
@@ -50,9 +50,9 @@
               "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"MySecretPass1!\",\n  \"name\": \"Jane Doe\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/auth/register",
+              "raw": "{{baseUrl}}/auth/register",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "auth",
@@ -62,7 +62,7 @@
           }
         },
         {
-          "name": "Login",
+          "name": "Login User",
           "event": [
             {
               "listen": "test",
@@ -93,9 +93,9 @@
               "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"MySecretPass1!\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/auth/login",
+              "raw": "{{baseUrl}}/auth/login",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "auth",
@@ -132,9 +132,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/auth/refresh",
+              "raw": "{{baseUrl}}/auth/refresh",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "auth",
@@ -144,34 +144,7 @@
           }
         },
         {
-          "name": "Get Profile (Me)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/auth/me",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auth",
-                "me"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Logout",
+          "name": "Logout User",
           "event": [
             {
               "listen": "test",
@@ -200,9 +173,9 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/auth/logout",
+              "raw": "{{baseUrl}}/auth/logout",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "auth",
@@ -212,133 +185,28 @@
           }
         },
         {
-          "name": "Switch Organization",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var json = pm.response.json();",
-                  "if (json.accessToken) {",
-                  "    pm.collectionVariables.set(\"accessToken\", json.accessToken);",
-                  "}",
-                  "if (json.refreshToken) {",
-                  "    pm.collectionVariables.set(\"refreshToken\", json.refreshToken);",
-                  "}"
-                ],
-                "type": "javascript"
-              }
-            }
-          ],
+          "name": "Get Current User",
           "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"organizationId\": \"{{organization_id}}\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/auth/switch-organization",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auth",
-                "switch-organization"
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
               ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Organizations",
-      "item": [
-        {
-          "name": "Create Organization",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var json = pm.response.json();",
-                  "if (json.id) {",
-                  "    pm.collectionVariables.set(\"organization_id\", json.id);",
-                  "}"
-                ],
-                "type": "javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Acme Corp\"\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/organizations",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "organizations"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Add Member",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"new_member@example.com\",\n  \"role\": \"MEMBER\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/organizations/{{organization_id}}/members",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "organizations",
-                "{{organization_id}}",
-                "members"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Members",
-          "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/organizations/{{organization_id}}/members",
+              "raw": "{{baseUrl}}/auth/me",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
-                "organizations",
-                "{{organization_id}}",
-                "members"
+                "auth",
+                "me"
               ]
             }
           }
@@ -346,10 +214,10 @@
       ]
     },
     {
-      "name": "Documents",
+      "name": "Uploads",
       "item": [
         {
-          "name": "Upload Documents",
+          "name": "Upload PDFs",
           "request": {
             "method": "POST",
             "header": [],
@@ -364,9 +232,9 @@
               ]
             },
             "url": {
-              "raw": "{{base_url}}/documents/upload",
+              "raw": "{{baseUrl}}/documents/upload",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "documents",
@@ -374,16 +242,21 @@
               ]
             }
           }
-        },
+        }
+      ]
+    },
+    {
+      "name": "Documents",
+      "item": [
         {
-          "name": "Get All Documents",
+          "name": "List Documents",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/documents",
+              "raw": "{{baseUrl}}/documents",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "documents"
@@ -392,129 +265,85 @@
           }
         },
         {
-          "name": "Get Document by ID",
+          "name": "Get Document Details",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/documents/{{document_id}}",
+              "raw": "{{baseUrl}}/documents/{{documentId}}",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "documents",
-                "{{document_id}}"
+                "{{documentId}}"
               ]
             }
           }
         },
         {
-          "name": "Get Document Download URL",
+          "name": "Download Renamed PDF",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/documents/{{document_id}}/download",
+              "raw": "{{baseUrl}}/documents/{{documentId}}/download",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "documents",
-                "{{document_id}}",
+                "{{documentId}}",
                 "download"
               ]
             }
           }
         },
         {
-          "name": "Retry Document Processing",
+          "name": "Retry Failed Document",
           "request": {
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/documents/{{document_id}}/retry",
+              "raw": "{{baseUrl}}/documents/{{documentId}}/retry",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "documents",
-                "{{document_id}}",
+                "{{documentId}}",
                 "retry"
               ]
             }
           }
         },
         {
-          "name": "Update Document Filename",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"filename\": \"new-updated-filename.pdf\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/documents/{{document_id}}/filename",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "documents",
-                "{{document_id}}",
-                "filename"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Delete Document",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/documents/{{document_id}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "documents",
-                "{{document_id}}"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Cancel Document Processing",
+          "name": "Cancel Processing Document",
           "request": {
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/documents/{{document_id}}/cancel",
+              "raw": "{{baseUrl}}/documents/{{documentId}}/cancel",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "documents",
-                "{{document_id}}",
+                "{{documentId}}",
                 "cancel"
               ]
             }
           }
         },
         {
-          "name": "Get Stuck Documents",
+          "name": "List Stuck Documents",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/documents/stuck",
+              "raw": "{{baseUrl}}/documents/stuck",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "documents",
@@ -529,9 +358,9 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/documents/stuck/reconcile",
+              "raw": "{{baseUrl}}/documents/stuck/reconcile",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "documents",
@@ -544,17 +373,17 @@
       ]
     },
     {
-      "name": "AI Evaluations",
+      "name": "AI Providers",
       "item": [
         {
-          "name": "Get AI Providers",
+          "name": "List AI Providers",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/ai/providers",
+              "raw": "{{baseUrl}}/ai/providers",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "ai",
@@ -564,14 +393,14 @@
           }
         },
         {
-          "name": "Check AI Provider Health",
+          "name": "Check Provider Health",
           "request": {
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/ai/providers/openai/health",
+              "raw": "{{baseUrl}}/ai/providers/openai/health",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "ai",
@@ -581,27 +410,32 @@
               ]
             }
           }
-        },
+        }
+      ]
+    },
+    {
+      "name": "AI Evaluations",
+      "item": [
         {
-          "name": "List AI Evaluations",
+          "name": "List Evaluation Runs",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/documents/{{document_id}}/ai-evaluations",
+              "raw": "{{baseUrl}}/documents/{{documentId}}/ai-evaluations",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "documents",
-                "{{document_id}}",
+                "{{documentId}}",
                 "ai-evaluations"
               ]
             }
           }
         },
         {
-          "name": "Run Single AI Evaluation",
+          "name": "Run Model Evaluation",
           "request": {
             "method": "POST",
             "header": [
@@ -615,20 +449,20 @@
               "raw": "{\n    \"provider\": \"openai\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/documents/{{document_id}}/ai-evaluations",
+              "raw": "{{baseUrl}}/documents/{{documentId}}/ai-evaluations",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "documents",
-                "{{document_id}}",
+                "{{documentId}}",
                 "ai-evaluations"
               ]
             }
           }
         },
         {
-          "name": "Run Batch AI Evaluation",
+          "name": "Run Batch Model Evaluation",
           "request": {
             "method": "POST",
             "header": [
@@ -642,55 +476,34 @@
               "raw": "{\n    \"runs\": [\n        { \"provider\": \"openai\" },\n        { \"provider\": \"ollama\" }\n    ]\n}"
             },
             "url": {
-              "raw": "{{base_url}}/documents/{{document_id}}/ai-evaluations/batch",
+              "raw": "{{baseUrl}}/documents/{{documentId}}/ai-evaluations/batch",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "documents",
-                "{{document_id}}",
+                "{{documentId}}",
                 "ai-evaluations",
                 "batch"
               ]
             }
           }
-        }
-      ]
-    },
-    {
-      "name": "Events (SSE)",
-      "item": [
-        {
-          "name": "Stream All Document Events (SSE)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/documents/events",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "documents",
-                "events"
-              ]
-            }
-          }
         },
         {
-          "name": "Stream Single Document Events (SSE)",
+          "name": "Get Evaluation Run",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/documents/{{document_id}}/events",
+              "raw": "{{baseUrl}}/documents/{{documentId}}/ai-evaluations/{{evaluation_id}}",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "documents",
-                "{{document_id}}",
-                "events"
+                "{{documentId}}",
+                "ai-evaluations",
+                "{{evaluation_id}}"
               ]
             }
           }
@@ -698,17 +511,39 @@
       ]
     },
     {
-      "name": "System & Monitoring",
+      "name": "Admin",
       "item": [
         {
-          "name": "Get Fast Health Check",
+          "name": "Get Organization Overview",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/health",
+              "raw": "{{baseUrl}}/admin/overview",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "overview"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health and Metrics",
+      "item": [
+        {
+          "name": "Basic Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
               ],
               "path": [
                 "health"
@@ -717,14 +552,14 @@
           }
         },
         {
-          "name": "Get Detailed Health Check",
+          "name": "Detailed Health",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/health/detailed",
+              "raw": "{{baseUrl}}/health/detailed",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "health",
@@ -734,7 +569,7 @@
           }
         },
         {
-          "name": "Get Prometheus Metrics",
+          "name": "Metrics",
           "request": {
             "method": "GET",
             "header": [
@@ -746,34 +581,12 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/metrics",
+              "raw": "{{baseUrl}}/metrics",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "metrics"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Admin",
-      "item": [
-        {
-          "name": "Get Overview",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/admin/overview",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "admin",
-                "overview"
               ]
             }
           }
@@ -783,12 +596,12 @@
   ],
   "variable": [
     {
-      "key": "base_url",
+      "key": "baseUrl",
       "value": "http://localhost:3000",
       "type": "string"
     },
     {
-      "key": "document_id",
+      "key": "documentId",
       "value": "replace-with-document-id",
       "type": "string"
     },
@@ -803,13 +616,28 @@
       "type": "string"
     },
     {
-      "key": "organization_id",
+      "key": "organizationId",
       "value": "",
       "type": "string"
     },
     {
       "key": "metrics_token",
       "value": "your-metrics-token-here",
+      "type": "string"
+    },
+    {
+      "key": "evaluation_id",
+      "value": "replace-with-evaluation-id",
+      "type": "string"
+    },
+    {
+      "key": "provider",
+      "value": "openai",
+      "type": "string"
+    },
+    {
+      "key": "model",
+      "value": "gpt-4o",
       "type": "string"
     }
   ]
