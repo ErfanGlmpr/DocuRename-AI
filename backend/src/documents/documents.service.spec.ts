@@ -55,11 +55,16 @@ describe('DocumentsService (Unit - Stuck Detection)', () => {
       mockQueue.getActive.mockResolvedValue([]);
       mockQueue.getWaiting.mockResolvedValue([]);
 
-      const result = await service.findStuck();
+      const result = await service.findStuck(ORG_ID);
 
       expect(result.stuckDocumentsCount).toBe(0);
       expect(result.stuckDocuments).toEqual([]);
       expect(mockPrisma.document.findMany).toHaveBeenCalled();
+      const mockCalls = mockPrisma.document.findMany.mock.calls as unknown[][];
+      const findManyArg = mockCalls[0][0] as {
+        where: { organizationId: string };
+      };
+      expect(findManyArg.where.organizationId).toBe(ORG_ID);
     });
 
     it('should detect stuck QUEUED document missing from physical queue', async () => {
@@ -75,7 +80,7 @@ describe('DocumentsService (Unit - Stuck Detection)', () => {
       mockQueue.getActive.mockResolvedValue([]);
       mockQueue.getWaiting.mockResolvedValue([]);
 
-      const result = await service.findStuck();
+      const result = await service.findStuck(ORG_ID);
 
       expect(result.stuckDocumentsCount).toBe(1);
       expect(result.stuckDocuments[0].id).toBe(mockDoc.id);
@@ -99,7 +104,7 @@ describe('DocumentsService (Unit - Stuck Detection)', () => {
       ]);
       mockQueue.getWaiting.mockResolvedValue([]);
 
-      const result = await service.findStuck();
+      const result = await service.findStuck(ORG_ID);
 
       expect(result.stuckDocumentsCount).toBe(0);
       expect(result.stuckDocuments).toEqual([]);
@@ -121,7 +126,7 @@ describe('DocumentsService (Unit - Stuck Detection)', () => {
       ]);
       mockQueue.getWaiting.mockResolvedValue([]);
 
-      const result = await service.findStuck();
+      const result = await service.findStuck(ORG_ID);
 
       expect(result.stuckDocumentsCount).toBe(1);
       expect(result.stuckDocuments[0].id).toBe(mockDoc.id);
@@ -146,7 +151,7 @@ describe('DocumentsService (Unit - Stuck Detection)', () => {
       mockQueue.getWaiting.mockResolvedValue([]);
       mockPrisma.document.update.mockResolvedValue({});
 
-      const result = await service.reconcileStuck();
+      const result = await service.reconcileStuck(ORG_ID);
 
       expect(result.reconciledCount).toBe(1);
       expect(result.reconciledIds).toEqual(['stuck-id']);
@@ -165,7 +170,7 @@ describe('DocumentsService (Unit - Stuck Detection)', () => {
       mockQueue.getActive.mockResolvedValue([]);
       mockQueue.getWaiting.mockResolvedValue([]);
 
-      const result = await service.reconcileStuck();
+      const result = await service.reconcileStuck(ORG_ID);
 
       expect(result.reconciledCount).toBe(0);
       expect(mockPrisma.document.update).not.toHaveBeenCalled();

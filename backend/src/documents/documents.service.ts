@@ -216,9 +216,9 @@ export class DocumentsService {
     return { message: 'Document processing canceled' };
   }
 
-  // ─── Admin / internal helpers (not organization-scoped) ───────────────────────
+  // ─── Admin / internal helpers (organization-scoped) ───────────────────────
 
-  async findStuck(): Promise<{
+  async findStuck(organizationId: string): Promise<{
     stuckDocumentsCount: number;
     stuckDocuments: {
       id: string;
@@ -231,6 +231,7 @@ export class DocumentsService {
   }> {
     const docs = await this.prisma.document.findMany({
       where: {
+        organizationId,
         status: {
           in: [
             DocumentStatus.QUEUED,
@@ -310,12 +311,12 @@ export class DocumentsService {
     };
   }
 
-  async reconcileStuck(): Promise<{
+  async reconcileStuck(organizationId: string): Promise<{
     message: string;
     reconciledCount: number;
     reconciledIds: string[];
   }> {
-    const { stuckDocuments } = await this.findStuck();
+    const { stuckDocuments } = await this.findStuck(organizationId);
 
     if (stuckDocuments.length === 0) {
       return {

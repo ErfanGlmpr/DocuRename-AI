@@ -59,10 +59,12 @@ describe('DocumentsController (Unit - Stuck Detection)', () => {
 
       mockDocumentsService.findStuck.mockResolvedValue(mockResult);
 
-      const result = await controller.findStuck();
+      const result = await controller.findStuck(MOCK_USER);
 
       expect(result).toEqual(mockResult);
-      expect(mockDocumentsService.findStuck).toHaveBeenCalled();
+      expect(mockDocumentsService.findStuck).toHaveBeenCalledWith(
+        MOCK_USER.organizationId,
+      );
     });
   });
 
@@ -76,10 +78,12 @@ describe('DocumentsController (Unit - Stuck Detection)', () => {
 
       mockDocumentsService.reconcileStuck.mockResolvedValue(mockResult);
 
-      const result = await controller.reconcileStuck();
+      const result = await controller.reconcileStuck(MOCK_USER);
 
       expect(result).toEqual(mockResult);
-      expect(mockDocumentsService.reconcileStuck).toHaveBeenCalled();
+      expect(mockDocumentsService.reconcileStuck).toHaveBeenCalledWith(
+        MOCK_USER.organizationId,
+      );
     });
   });
 

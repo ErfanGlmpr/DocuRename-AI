@@ -19,6 +19,9 @@ import { DocumentsService } from './documents.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
+import { OrganizationRole } from '@prisma/client';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { OrganizationRoleGuard } from '../auth/guards/organization-role.guard';
 
 @ApiTags('documents')
 @ApiBearerAuth()
@@ -34,21 +37,25 @@ export class DocumentsController {
   }
 
   @Get('stuck')
+  @Roles(OrganizationRole.OWNER, OrganizationRole.ADMIN)
+  @UseGuards(OrganizationRoleGuard)
   @ApiOperation({
     summary:
       'List all stuck documents that are blocked or missing from the queue',
   })
-  async findStuck() {
-    return this.documentsService.findStuck();
+  async findStuck(@CurrentUser() user: AuthenticatedUser) {
+    return this.documentsService.findStuck(user.organizationId);
   }
 
   @Post('stuck/reconcile')
+  @Roles(OrganizationRole.OWNER, OrganizationRole.ADMIN)
+  @UseGuards(OrganizationRoleGuard)
   @ApiOperation({
     summary:
       'Automatically reconcile stuck documents by marking them as FAILED',
   })
-  async reconcileStuck() {
-    return this.documentsService.reconcileStuck();
+  async reconcileStuck(@CurrentUser() user: AuthenticatedUser) {
+    return this.documentsService.reconcileStuck(user.organizationId);
   }
 
   @Get(':id')
