@@ -24,6 +24,7 @@ Global rules:
 * Use TDD where practical.
 * A ticket is not complete until build, lint, and tests pass.
 * Update Postman collection when endpoint behavior changes.
+* Update TASKS.md once a ticket is completed.
 
 Required verification after implementation:
 

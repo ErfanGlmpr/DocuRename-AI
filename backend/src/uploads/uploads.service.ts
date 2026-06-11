@@ -27,8 +27,15 @@ export class UploadsService {
 
     for (const file of files) {
       if (file.mimetype !== 'application/pdf') {
-        this.logger.warn(`Skipping non-PDF file: ${file.originalname}`);
-        continue;
+        throw new BadRequestException({
+          message: 'Upload validation failed',
+          errors: [
+            {
+              filename: file.originalname,
+              reason: 'Only PDF files are allowed',
+            },
+          ],
+        });
       }
 
       const hash = crypto

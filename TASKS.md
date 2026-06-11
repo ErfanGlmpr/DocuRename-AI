@@ -380,3 +380,31 @@ Track each task below. Check the box **only** when:
 - [x] Frontend: Implement promise lock to prevent redundant concurrent refresh requests.
 - [x] Frontend: Update SSE (`fetchSSE`) logic to handle 401s and rotate token.
 - [x] Build + test + lint pass (backend and frontend)
+
+---
+
+## Milestone 15 — Phase 5 Final Hardening Tickets
+
+### Ticket 15 — Fix Tenant Isolation for Stuck Document Endpoints
+- [x] Endpoints require authenticated user and scope results/actions to `currentUser.organizationId`.
+- [x] `GET /documents/stuck` only returns stuck documents from the authenticated user’s organization.
+- [x] `POST /documents/stuck/reconcile` only reconciles stuck documents from the authenticated user’s organization.
+- [x] Added tests proving tenant isolation.
+
+### Ticket 16 — Enforce Organization Scoping Directly in Document Queries
+- [x] User-accessible document queries are organization-scoped at the database query level.
+- [x] Cross-organization access returns safe error.
+- [x] Added tests verifying user cannot access other organizations' documents by ID.
+
+### Ticket 17 — Fix Upload Validation Error Response Shape
+- [x] Upload validation returns predictable, frontend-friendly structured errors per file.
+- [x] The whole request is rejected if any file is invalid.
+- [x] Invalid files are not stored or enqueued.
+- [x] Added tests for structured error responses across all validation scenarios.
+
+### Ticket 18 — Remove Legacy Silent Skip Behavior from Upload Service
+- [x] Upload service does not silently skip invalid files.
+- [x] Invalid files cause a clear error.
+- [x] No invalid files are stored or queued.
+- [x] Valid multi-PDF upload still works.
+- [x] Added unit tests for service validation behavior.
