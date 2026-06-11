@@ -430,3 +430,11 @@ Track each task below. Check the box **only** when:
 - [x] Upload Validation tests verified.
 - [x] Sensitive Data tests added to ensure document details don't expose raw/redacted text.
 - [x] Frontend tests verified to not render sensitive fields.
+
+### Ticket 22 — Final Verification and Documentation Pass
+- [x] Backend build, lint, tests pass.
+- [x] Frontend build, lint, tests pass.
+- [x] Prisma validates, if schema changed.
+- [x] Postman collection is updated.
+- [x] README and env examples are accurate.
+- [x] No known build/lint/test errors remain.

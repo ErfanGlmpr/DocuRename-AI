@@ -274,7 +274,7 @@ Phase 5 introduces a full SaaS foundation and a React/Next.js Frontend:
 - **Organization Management**: Users can create organizations, invite members, and seamlessly switch active contexts.
 - **Tenant Isolation**: Documents, AI evaluation runs, and audit logs are strictly scoped to organizations.
 - **Frontend Dashboard**: A responsive Next.js frontend with drag-and-drop document uploads, real-time status updates via SSE, and detailed document views.
-- **API Hardening**: JWT guards on all sensitive endpoints, payload validation pipes, robust rate limiting, and safe-by-default CORS handling (`CORS_ORIGIN` is required in production, defaults to `http://localhost:3000` locally).
+- **API Hardening**: JWT guards on all sensitive endpoints, payload validation pipes, robust rate limiting, and safe-by-default CORS handling (`CORS_ORIGIN` is required in production, defaults to `http://localhost:3000,http://localhost:3001` locally).
 - **Data Retention**: Background cron jobs automatically clean up orphaned objects in MinIO and delete failed documents older than a configured threshold.
 - **Multi-Instance SSE**: Support for Redis as a transport layer (`EVENT_TRANSPORT=redis`) to broadcast SSE events across multiple backend instances.
 
