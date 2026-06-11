@@ -408,3 +408,9 @@ Track each task below. Check the box **only** when:
 - [x] No invalid files are stored or queued.
 - [x] Valid multi-PDF upload still works.
 - [x] Added unit tests for service validation behavior.
+
+### Ticket 19 — Harden CORS Fallback Behavior
+- [x] Production does not start with unsafe missing CORS configuration.
+- [x] Local development still works with frontend on `http://localhost:3000`.
+- [x] Credentialed requests only work from allowed origins.
+- [x] README and `.env.example` document the behavior.
