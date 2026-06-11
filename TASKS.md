@@ -423,3 +423,10 @@ Track each task below. Check the box **only** when:
 - [x] Related endpoints are grouped together into cleanly named folders.
 - [x] Request names are clear.
 - [x] No real secrets are committed.
+
+### Ticket 21 — Add/Update Final Security Regression Tests
+- [x] Auth and Protection tests added.
+- [x] Tenant Isolation tests added for stuck documents.
+- [x] Upload Validation tests verified.
+- [x] Sensitive Data tests added to ensure document details don't expose raw/redacted text.
+- [x] Frontend tests verified to not render sensitive fields.

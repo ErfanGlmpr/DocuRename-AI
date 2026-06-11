@@ -155,4 +155,31 @@ describe('Tenant Isolation and Authorization (e2e)', () => {
       })
       .expect(404);
   });
+
+  it('Stuck documents listing is scoped', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/documents/stuck')
+      .set('Authorization', `Bearer ${tokenB}`)
+      .expect(200);
+
+    // User B should not see any stuck documents from User A
+    const body = res.body as {
+      stuckDocuments: any[];
+      stuckDocumentsCount: number;
+    };
+    expect(body.stuckDocuments).toBeDefined();
+    expect(body.stuckDocuments.length).toBe(0);
+    expect(body.stuckDocumentsCount).toBe(0);
+  });
+
+  it('Stuck documents reconcile is scoped', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/documents/stuck/reconcile')
+      .set('Authorization', `Bearer ${tokenB}`)
+      .expect(201);
+
+    // User B should not reconcile any stuck documents from User A
+    const body = res.body as { reconciledCount: number };
+    expect(body.reconciledCount).toBe(0);
+  });
 });
