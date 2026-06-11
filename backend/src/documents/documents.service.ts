@@ -54,10 +54,10 @@ export class DocumentsService {
   }
 
   async findOne(id: string, organizationId: string) {
-    const document = await this.prisma.document.findUnique({
-      where: { id },
+    const document = await this.prisma.document.findFirst({
+      where: { id, organizationId },
     });
-    if (!document || document.organizationId !== organizationId) {
+    if (!document) {
       throw new NotFoundException(`Document with id ${id} not found`);
     }
     return document;

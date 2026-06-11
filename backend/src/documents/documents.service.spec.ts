@@ -18,7 +18,7 @@ describe('DocumentsService (Unit - Stuck Detection)', () => {
   const mockPrisma = {
     document: {
       findMany: jest.fn(),
-      findUnique: jest.fn(),
+      findFirst: jest.fn(),
       update: jest.fn(),
     },
   };
@@ -192,11 +192,8 @@ describe('DocumentsService (Unit - Stuck Detection)', () => {
   });
 
   describe('findOne (org-scoped)', () => {
-    it('should throw NotFoundException if document belongs to a different org', async () => {
-      mockPrisma.document.findUnique.mockResolvedValue({
-        id: 'doc-1',
-        organizationId: 'other-org',
-      });
+    it('should throw NotFoundException if document belongs to a different org or does not exist', async () => {
+      mockPrisma.document.findFirst.mockResolvedValue(null);
 
       await expect(service.findOne('doc-1', ORG_ID)).rejects.toThrow(
         'Document with id doc-1 not found',
@@ -205,7 +202,7 @@ describe('DocumentsService (Unit - Stuck Detection)', () => {
 
     it('should return document when org matches', async () => {
       const doc = { id: 'doc-1', organizationId: ORG_ID };
-      mockPrisma.document.findUnique.mockResolvedValue(doc);
+      mockPrisma.document.findFirst.mockResolvedValue(doc);
 
       const result = await service.findOne('doc-1', ORG_ID);
 

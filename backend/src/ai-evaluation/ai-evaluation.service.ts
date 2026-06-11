@@ -53,10 +53,10 @@ export class AiEvaluationService {
       );
     }
 
-    const document = await this.prisma.document.findUnique({
-      where: { id: documentId },
+    const document = await this.prisma.document.findFirst({
+      where: { id: documentId, organizationId },
     });
-    if (!document || document.organizationId !== organizationId) {
+    if (!document) {
       throw new NotFoundException(`Document ${documentId} not found`);
     }
 
@@ -259,10 +259,10 @@ export class AiEvaluationService {
    * List all evaluation runs for a document, newest first.
    */
   async listEvaluations(documentId: string, organizationId: string) {
-    const document = await this.prisma.document.findUnique({
-      where: { id: documentId },
+    const document = await this.prisma.document.findFirst({
+      where: { id: documentId, organizationId },
     });
-    if (!document || document.organizationId !== organizationId) {
+    if (!document) {
       throw new NotFoundException(`Document ${documentId} not found`);
     }
 
