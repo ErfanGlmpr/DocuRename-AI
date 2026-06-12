@@ -1,8 +1,10 @@
 # PDF AI Renaming SaaS
 
-This is the backend for a PDF AI renaming application. It extracts text from uploaded PDFs, protects user privacy by redacting Personally Identifiable Information (PII), sends the safe text to a local LLM (Ollama) to extract metadata, and generates a safe, clean filename.
+This is the backend for a PDF AI renaming application.
+It extracts text from uploaded PDFs, protects user privacy by redacting Personally Identifiable Information (PII), sends the safe text to a local LLM (Ollama) to extract metadata, and generates a safe, clean filename.
 
 ## Phase 1 Overview
+
 Phase 1 focuses on the core functionality:
 - PDF upload and storage in MinIO.
 - Text extraction using `pdf-parse`.
@@ -10,6 +12,7 @@ Phase 1 focuses on the core functionality:
 - Automatic filename generation.
 
 ## Phase 2: Privacy & PII Protection (New!)
+
 Phase 2 adds a robust privacy pipeline before data is sent to the AI:
 - **PII Detection**: Detects EMAIL, PHONE, IBAN, CREDIT_CARD, VAT_ID, TAX_ID, labeled Names/Addresses, etc.
 - **Tokenization**: Replaces sensitive data with stable tokens (e.g., `[EMAIL_1]`).
@@ -33,7 +36,9 @@ Phase 2 adds a robust privacy pipeline before data is sent to the AI:
 ## Local Setup Instructions
 
 ### Quick Start (Automated)
-The easiest way to get started is by using the automated setup script. It will configure your environment variables, start the Docker containers, run database migrations, and pull the required AI models.
+
+The easiest way to get started is by using the automated setup script.
+It will configure your environment variables, start the Docker containers, run database migrations, and pull the required AI models.
 
 ```bash
 ./setup.sh
@@ -42,10 +47,12 @@ The easiest way to get started is by using the automated setup script. It will c
 ### Manual Setup
 
 ### Prerequisites
+
 - Node.js 18+
 - Docker and Docker Compose
 
 ### 1. Configure Environment Variables
+
 You need to set up your environment variables for both the frontend and backend.
 
 ```bash
@@ -61,7 +68,9 @@ cd ..
 *(Note: `.env` already contains local dev defaults. For cloud models like Gemini, OpenAI, etc. you'll need to configure their respective API keys in the backend).*
 
 ### 2. Configure Development Overrides
-This project uses the "Override" pattern for local development. This ensures you get hot-reloading and verbose request logging without changing the production configurations.
+
+This project uses the "Override" pattern for local development.
+This ensures you get hot-reloading and verbose request logging without changing the production configurations.
 
 Copy the provided template to enable the development overrides:
 ```bash
@@ -70,6 +79,7 @@ cp docker-compose.override.example.yml docker-compose.override.yml
 *(Note: `docker-compose.override.yml` is ignored by git so you can safely make personal local changes to it if needed).*
 
 ### 3. Start the Full Stack
+
 Make sure Docker is running. From the **root** of the project, run:
 ```bash
 docker compose up
@@ -91,25 +101,31 @@ This command will automatically build and start the entire stack:
 > - **ClamAV** will take 5-10 minutes on its first run to download its database of signature definitions. Until completed, virus scanning requests will fail/log warnings if enabled.
 
 ### 4. Apply Database Migrations
-Once the database container is running, you must apply the Prisma schema migrations to create the required tables. This is especially important after wiping your database data.
+
+Once the database container is running, you must apply the Prisma schema migrations to create the required tables.
+This is especially important after wiping your database data.
 ```bash
 docker compose exec backend npx prisma migrate deploy
 ```
 
 ### 5. Pull the Ollama Model
+
 The Ollama container starts empty; you must pull the default model manually (this is persistent, you only do this once):
 ```bash
 docker exec -it pdf_ai_ollama ollama pull llama3.1:8b
 ```
 
 ### 6. Access the Application
+
 - **Frontend Dashboard**: [http://localhost:3001](http://localhost:3001)
 - **Backend API Docs**: [http://localhost:3000/api](http://localhost:3000/api)
 
 ---
 
 ## Syncing Between Workstations
-When working between a PC and a Mac, you can keep your environments in sync using the provided update script. This script automatically pulls the latest code, installs any new NPM dependencies, rebuilds your Docker containers, and applies any pending database migrations.
+
+When working between a PC and a Mac, you can keep your environments in sync using the provided update script.
+This script automatically pulls the latest code, installs any new NPM dependencies, rebuilds your Docker containers, and applies any pending database migrations.
 
 Just run this when you switch machines:
 ```bash
@@ -162,6 +178,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
 ## Supported PII Types
+
 - EMAIL, PHONE, IBAN, CREDIT_CARD, VAT_ID, TAX_ID.
 - PERSON_NAME_BASIC, ADDRESS_BASIC (when labeled).
 - GENERIC_ID_NUMBER (Passport, ID, etc.).
@@ -169,7 +186,9 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ---
 
 ## Phase 3: Cloud AI & Model Evaluation (New!)
-Phase 3 introduces support for swappable cloud AI providers and a backend model-evaluation workflow to compare accuracy. **Privacy is strictly enforced**: cloud providers only receive the minimized, redacted text (no raw text, no original PII).
+
+Phase 3 introduces support for swappable cloud AI providers and a backend model-evaluation workflow to compare accuracy.
+**Privacy is strictly enforced**: cloud providers only receive the minimized, redacted text (no raw text, no original PII).
 
 Supported Providers:
 - **Ollama** (Local, default)
@@ -180,6 +199,7 @@ Supported Providers:
 - **OpenAI-Compatible** (vLLM, LM Studio, OpenRouter)
 
 ### Model Evaluation Workflow
+
 You can compare how different models perform on the same document:
 1. `GET /ai/providers` — List available providers and configuration status.
 2. `POST /ai/providers/:provider/health` — Check connectivity.
@@ -188,19 +208,19 @@ You can compare how different models perform on the same document:
 
 ---
 
----
-
 ## Phase 4: Production Readiness (New!)
 
 Phase 4 adds enterprise-grade reliability and observability features.
 
 ### OCR Support (Scanned PDFs)
+
 - **OCR sidecar**: A Python FastAPI microservice (`ocr-sidecar/`) running `pytesseract` + `pdf2image` + poppler-utils.
 - **Automatic fallback**: OCR only triggers when pdf-parse extracts fewer than `OCR_MIN_TEXT_LENGTH` characters.
 - **Language support**: English, German, French, Spanish, Dutch — add more via the Dockerfile.
 - **Enable**: Set `OCR_ENABLED=true` and `OCR_SIDECAR_URL=http://localhost:8080`.
 
 ### Virus Scanning (ClamAV)
+
 - **ClamAV daemon (clamd)** scans every uploaded PDF before text extraction.
 - **Enable**: Set `VIRUS_SCAN_ENABLED=true` and start the `clamav` Docker service.
 - **Graceful degradation**: If clamd is unreachable, processing continues with a warning log.
@@ -208,15 +228,17 @@ Phase 4 adds enterprise-grade reliability and observability features.
 - **Note**: First `clamav` container startup downloads ~300 MB of virus definitions.
 
 ### Real-Time SSE Events
+
 Stream document lifecycle events without polling:
-```
+```text
 GET /documents/events         # all documents
 GET /documents/:id/events     # single document
 ```
 Events: `DOCUMENT_QUEUED`, `DOCUMENT_PROCESSING_STARTED`, `DOCUMENT_VIRUS_SCAN_STARTED/PASSED`, `DOCUMENT_TEXT_EXTRACTED`, `DOCUMENT_OCR_STARTED/COMPLETED`, `DOCUMENT_PII_DETECTED`, `DOCUMENT_AI_STARTED/COMPLETED`, `DOCUMENT_COMPLETED`, `DOCUMENT_FAILED`.
 
 ### Prometheus Metrics
-```
+
+```text
 GET /metrics                  # Prometheus text format
 ```
 Counters: `documents_processed_total`, `documents_failed_total`, `ocr_runs_total`, `ocr_success_total`, `virus_scan_total`, `virus_scan_failed_total`, `provider_requests_total{provider}`, `provider_failures_total{provider}`.
@@ -224,24 +246,30 @@ Histograms: `document_processing_duration_seconds`, `ai_latency_seconds{provider
 Disable with `METRICS_ENABLED=false`.
 
 ### Health Checks
-```
+
+```text
 GET /health                   # fast liveness: DB + Redis
 GET /health/detailed          # all deps: DB, Redis, MinIO, AI provider, Queue
 ```
 
 ### Reliability Improvements
+
 - **Custom retry backoff**: Failed jobs retry at 1 min → 5 min → 15 min (3 retries max).
 - **Non-retryable classification**: Infected files, invalid PDFs, and user cancellations are never retried (`UnrecoverableError`).
 - **Processing timeout**: `DOCUMENT_PROCESSING_TIMEOUT_MS=900000` (15 min default). Documents exceeding this are marked `FAILED` and not retried.
 
 ### Document Quality Score
+
 Every processed document receives a quality score (0–100) stored in `qualityScore`:
 - **25 pts** — Extraction quality (chars/page, OCR penalty -10)
 - **35 pts** — AI confidence
 - **40 pts** — Metadata completeness (title, category, date, issuer, summary, recipient, ref)
 
 ### Large Document Handling
-`DocumentChunkingService` selects the most information-dense sections for documents exceeding `AI_MAX_INPUT_CHARS`, prioritising headings (40pts), keyword-rich lines (30pts), and first-page content (10pts). Stores `chunkCount` and `inputTextLength` for audit.
+
+`DocumentChunkingService` selects the most information-dense sections for documents exceeding `AI_MAX_INPUT_CHARS`.
+It prioritises headings (40pts), keyword-rich lines (30pts), and first-page content (10pts).
+Stores `chunkCount` and `inputTextLength` for audit.
 
 ---
 
@@ -281,10 +309,12 @@ Phase 5 introduces a full SaaS foundation and a React/Next.js Frontend:
 ---
 
 ## Known Limitations
+
 - **OCR sidecar first-build time**: The Docker image downloads Tesseract language packs on first build (~200 MB).
 - **ClamAV cold start**: First startup downloads virus definitions (~300 MB). Subsequent restarts are fast.
 
 ## Future Roadmap
+
 - Semantic search with vector embeddings
 - Batch processing API
 - Webhook callbacks for document events

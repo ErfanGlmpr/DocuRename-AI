@@ -20,6 +20,7 @@ describe('DocumentsService (Unit - Stuck Detection)', () => {
       findMany: jest.fn(),
       findFirst: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn(),
     },
   };
 
@@ -149,14 +150,17 @@ describe('DocumentsService (Unit - Stuck Detection)', () => {
       mockPrisma.document.findMany.mockResolvedValue([mockDoc]);
       mockQueue.getActive.mockResolvedValue([]);
       mockQueue.getWaiting.mockResolvedValue([]);
-      mockPrisma.document.update.mockResolvedValue({});
+      mockPrisma.document.updateMany.mockResolvedValue({ count: 1 });
 
       const result = await service.reconcileStuck(ORG_ID);
 
       expect(result.reconciledCount).toBe(1);
       expect(result.reconciledIds).toEqual(['stuck-id']);
-      expect(mockPrisma.document.update).toHaveBeenCalledWith({
-        where: { id: 'stuck-id' },
+      expect(mockPrisma.document.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 'stuck-id',
+          organizationId: ORG_ID,
+        },
         data: {
           status: DocumentStatus.FAILED,
           errorMessage:
@@ -173,7 +177,7 @@ describe('DocumentsService (Unit - Stuck Detection)', () => {
       const result = await service.reconcileStuck(ORG_ID);
 
       expect(result.reconciledCount).toBe(0);
-      expect(mockPrisma.document.update).not.toHaveBeenCalled();
+      expect(mockPrisma.document.updateMany).not.toHaveBeenCalled();
     });
   });
 
