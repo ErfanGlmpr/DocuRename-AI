@@ -329,8 +329,11 @@ export class DocumentsService {
     const reconciledIds: string[] = [];
 
     for (const doc of stuckDocuments) {
-      await this.prisma.document.update({
-        where: { id: doc.id },
+      await this.prisma.document.updateMany({
+        where: {
+          id: doc.id,
+          organizationId,
+        },
         data: {
           status: DocumentStatus.FAILED,
           errorMessage: `System auto-reconciliation: detected stuck processing. Reason: ${doc.reason}`,
